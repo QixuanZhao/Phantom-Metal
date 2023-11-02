@@ -7,21 +7,49 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D91560942AEFCBFA00B97A88 /* EulerRotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91560932AEFCBFA00B97A88 /* EulerRotations.swift */; };
+		D91560962AEFCCA300B97A88 /* AxisRotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91560952AEFCCA300B97A88 /* AxisRotation.swift */; };
 		D94FF25C2AD682C60019F211 /* PhantomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25B2AD682C60019F211 /* PhantomApp.swift */; };
 		D94FF25E2AD682C60019F211 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25D2AD682C60019F211 /* ContentView.swift */; };
-		D94FF2602AD682C60019F211 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25F2AD682C60019F211 /* Item.swift */; };
 		D94FF2622AD682C70019F211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94FF2612AD682C70019F211 /* Assets.xcassets */; };
 		D94FF2652AD682C70019F211 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94FF2642AD682C70019F211 /* Preview Assets.xcassets */; };
+		D94FF26E2AD69D120019F211 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF26D2AD69D120019F211 /* MetalView.swift */; };
+		D94FF2712AD6D2580019F211 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF2702AD6D2580019F211 /* Renderer.swift */; };
+		D94FF2742AD805AD0019F211 /* shader.metal in Sources */ = {isa = PBXBuildFile; fileRef = D94FF2732AD805AD0019F211 /* shader.metal */; };
+		D970E8F52AE053E3005F0BB7 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = D970E8F42AE053E3005F0BB7 /* Protocols.swift */; };
+		D970E8F92AE05452005F0BB7 /* Square.swift in Sources */ = {isa = PBXBuildFile; fileRef = D970E8F82AE05452005F0BB7 /* Square.swift */; };
+		D970E8FF2AE05AA6005F0BB7 /* Axes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D970E8FE2AE05AA6005F0BB7 /* Axes.swift */; };
+		D970E9012AE05CDE005F0BB7 /* Transformation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D970E9002AE05CDE005F0BB7 /* Transformation.swift */; };
+		D970E9032AE1577A005F0BB7 /* RGBTriangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D970E9022AE1577A005F0BB7 /* RGBTriangle.swift */; };
+		D979F8072AE2A62600D1CCAF /* Mesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = D979F8062AE2A62600D1CCAF /* Mesh.swift */; };
+		D9C74D892ADD504A006F9E47 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74D882ADD504A006F9E47 /* Camera.swift */; };
+		D9C74D8B2ADD5936006F9E47 /* CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74D8A2ADD5936006F9E47 /* CameraController.swift */; };
+		D9C74D8E2ADD6D0F006F9E47 /* FPSCameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74D8D2ADD6D0F006F9E47 /* FPSCameraController.swift */; };
+		D9C74DAE2ADDA646006F9E47 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74DAD2ADDA646006F9E47 /* Data.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D91560932AEFCBFA00B97A88 /* EulerRotations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EulerRotations.swift; sourceTree = "<group>"; };
+		D91560952AEFCCA300B97A88 /* AxisRotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AxisRotation.swift; sourceTree = "<group>"; };
 		D94FF2582AD682C60019F211 /* Phantom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Phantom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D94FF25B2AD682C60019F211 /* PhantomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhantomApp.swift; sourceTree = "<group>"; };
 		D94FF25D2AD682C60019F211 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		D94FF25F2AD682C60019F211 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		D94FF2612AD682C70019F211 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D94FF2642AD682C70019F211 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D94FF2662AD682C70019F211 /* Phantom.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Phantom.entitlements; sourceTree = "<group>"; };
+		D94FF26D2AD69D120019F211 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
+		D94FF2702AD6D2580019F211 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		D94FF2732AD805AD0019F211 /* shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shader.metal; sourceTree = "<group>"; };
+		D970E8F42AE053E3005F0BB7 /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		D970E8F82AE05452005F0BB7 /* Square.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Square.swift; sourceTree = "<group>"; };
+		D970E8FE2AE05AA6005F0BB7 /* Axes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Axes.swift; sourceTree = "<group>"; };
+		D970E9002AE05CDE005F0BB7 /* Transformation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transformation.swift; sourceTree = "<group>"; };
+		D970E9022AE1577A005F0BB7 /* RGBTriangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RGBTriangle.swift; sourceTree = "<group>"; };
+		D979F8062AE2A62600D1CCAF /* Mesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mesh.swift; sourceTree = "<group>"; };
+		D9C74D882ADD504A006F9E47 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
+		D9C74D8A2ADD5936006F9E47 /* CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraController.swift; sourceTree = "<group>"; };
+		D9C74D8D2ADD6D0F006F9E47 /* FPSCameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FPSCameraController.swift; sourceTree = "<group>"; };
+		D9C74DAD2ADDA646006F9E47 /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +63,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D91560922AEFCBDD00B97A88 /* Transformation */ = {
+			isa = PBXGroup;
+			children = (
+				D91560932AEFCBFA00B97A88 /* EulerRotations.swift */,
+				D91560952AEFCCA300B97A88 /* AxisRotation.swift */,
+			);
+			path = Transformation;
+			sourceTree = "<group>";
+		};
 		D94FF24F2AD682C60019F211 = {
 			isa = PBXGroup;
 			children = (
@@ -54,9 +91,9 @@
 		D94FF25A2AD682C60019F211 /* Phantom */ = {
 			isa = PBXGroup;
 			children = (
+				D94FF26F2AD6D2440019F211 /* Metal */,
+				D94FF26C2AD688D60019F211 /* Views */,
 				D94FF25B2AD682C60019F211 /* PhantomApp.swift */,
-				D94FF25D2AD682C60019F211 /* ContentView.swift */,
-				D94FF25F2AD682C60019F211 /* Item.swift */,
 				D94FF2612AD682C70019F211 /* Assets.xcassets */,
 				D94FF2662AD682C70019F211 /* Phantom.entitlements */,
 				D94FF2632AD682C70019F211 /* Preview Content */,
@@ -70,6 +107,75 @@
 				D94FF2642AD682C70019F211 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		D94FF26C2AD688D60019F211 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D94FF25D2AD682C60019F211 /* ContentView.swift */,
+				D94FF26D2AD69D120019F211 /* MetalView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D94FF26F2AD6D2440019F211 /* Metal */ = {
+			isa = PBXGroup;
+			children = (
+				D91560922AEFCBDD00B97A88 /* Transformation */,
+				D970E8F32AE053D7005F0BB7 /* Geometry */,
+				D9C74DAC2ADDA63D006F9E47 /* Data */,
+				D9C74D872ADD4652006F9E47 /* Camera */,
+				D94FF2722AD805740019F211 /* Shaders */,
+				D94FF2702AD6D2580019F211 /* Renderer.swift */,
+			);
+			path = Metal;
+			sourceTree = "<group>";
+		};
+		D94FF2722AD805740019F211 /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				D94FF2732AD805AD0019F211 /* shader.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
+		D970E8F32AE053D7005F0BB7 /* Geometry */ = {
+			isa = PBXGroup;
+			children = (
+				D970E8F42AE053E3005F0BB7 /* Protocols.swift */,
+				D970E9002AE05CDE005F0BB7 /* Transformation.swift */,
+				D970E8F82AE05452005F0BB7 /* Square.swift */,
+				D970E8FE2AE05AA6005F0BB7 /* Axes.swift */,
+				D970E9022AE1577A005F0BB7 /* RGBTriangle.swift */,
+				D979F8062AE2A62600D1CCAF /* Mesh.swift */,
+			);
+			path = Geometry;
+			sourceTree = "<group>";
+		};
+		D9C74D872ADD4652006F9E47 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				D9C74D8C2ADD6D00006F9E47 /* Controller */,
+				D9C74D882ADD504A006F9E47 /* Camera.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		D9C74D8C2ADD6D00006F9E47 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				D9C74D8A2ADD5936006F9E47 /* CameraController.swift */,
+				D9C74D8D2ADD6D0F006F9E47 /* FPSCameraController.swift */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		D9C74DAC2ADDA63D006F9E47 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				D9C74DAD2ADDA646006F9E47 /* Data.swift */,
+			);
+			path = Data;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -104,6 +210,7 @@
 				TargetAttributes = {
 					D94FF2572AD682C60019F211 = {
 						CreatedOnToolsVersion = 15.0;
+						LastSwiftMigration = 1500;
 					};
 				};
 			};
@@ -142,9 +249,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D94FF26E2AD69D120019F211 /* MetalView.swift in Sources */,
 				D94FF25E2AD682C60019F211 /* ContentView.swift in Sources */,
-				D94FF2602AD682C60019F211 /* Item.swift in Sources */,
+				D9C74DAE2ADDA646006F9E47 /* Data.swift in Sources */,
+				D91560962AEFCCA300B97A88 /* AxisRotation.swift in Sources */,
+				D970E8F52AE053E3005F0BB7 /* Protocols.swift in Sources */,
+				D970E9012AE05CDE005F0BB7 /* Transformation.swift in Sources */,
+				D9C74D8E2ADD6D0F006F9E47 /* FPSCameraController.swift in Sources */,
+				D9C74D8B2ADD5936006F9E47 /* CameraController.swift in Sources */,
+				D970E9032AE1577A005F0BB7 /* RGBTriangle.swift in Sources */,
+				D970E8FF2AE05AA6005F0BB7 /* Axes.swift in Sources */,
+				D979F8072AE2A62600D1CCAF /* Mesh.swift in Sources */,
+				D9C74D892ADD504A006F9E47 /* Camera.swift in Sources */,
+				D970E8F92AE05452005F0BB7 /* Square.swift in Sources */,
+				D94FF2712AD6D2580019F211 /* Renderer.swift in Sources */,
+				D94FF2742AD805AD0019F211 /* shader.metal in Sources */,
 				D94FF25C2AD682C60019F211 /* PhantomApp.swift in Sources */,
+				D91560942AEFCBFA00B97A88 /* EulerRotations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,12 +395,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Phantom/Preview Content\"";
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -293,6 +415,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = TSAR.Phantom;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_INTEROP_MODE = objc;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -302,12 +428,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Phantom/Preview Content\"";
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -321,6 +448,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = TSAR.Phantom;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_INTEROP_MODE = objc;
+				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
