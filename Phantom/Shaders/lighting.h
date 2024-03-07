@@ -17,7 +17,7 @@ float3 parallelLight (float3 normal, float3 tangent, float3 bitangent,
                       float3 refractive,
                       float3 extinction,
                       float2 roughness,
-                      constant Light& light);
+                      thread const Light& light);
 }
 
 namespace brdf {

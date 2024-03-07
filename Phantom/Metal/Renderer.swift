@@ -8,192 +8,241 @@
 import SwiftUI
 import MetalKit
 
-class Renderer: NSObject, MTKViewDelegate, ObservableObject {
-    private var device = MTLCreateSystemDefaultDevice()
-    private var commandQueue: MTLCommandQueue?
-    
-    var lastFrameTimestamp: Date = .now
+@Observable 
+class Renderer: NSObject, MTKViewDelegate {
+    var fps: Double = 0.0
+    private(set) var startTimestamp: Date!
+    private(set) var lastFrameTimestamp: Date = .now
     var backgroundColor: Color.Resolved?
-    @Published var fps: Double = 0.0
     var resolution: CGSize = .zero
+    var clearColor: MTLClearColor {
+        if let backgroundColor {
+            MTLClearColorMake(
+                Double(backgroundColor.red),
+                Double(backgroundColor.green),
+                Double(backgroundColor.blue),
+                Double(backgroundColor.opacity)
+            )
+        } else { MTLClearColorMake(0, 0, 0, 0) }
+    }
     
-    private var renderPipelineState: MTLRenderPipelineState?
+    private var depthTexture: MTLTexture
+    private var positionTexture: MTLTexture
+    private var normalTexture: MTLTexture
+    private var albedoSpecularTexture: MTLTexture
+    private var refractiveIndicesRoughnessUTexture: MTLTexture
+    private var extinctionCoefficentsRoughnessVTexture: MTLTexture
+    private var hdrTexture: MTLTexture
+    
+    private var deferredPipelineState: MTLRenderPipelineState?
+    private var postprocessPipelineState: MTLRenderPipelineState?
     private var depthStencilState: MTLDepthStencilState?
+    
+    private var renderPassDescriptor = MTLRenderPassDescriptor()
+    private var postprocessPassDescriptor = MTLRenderPassDescriptor()
+    
     private var uniformBuffer: MTLBuffer?
-    private var depthTexture: MTLTexture?
+    private var lightBuffer: MTLBuffer?
     
-    private(set) var camera = Camera()
-    var controller = FPSCameraController()
+    let postprocessVertexFunction = system.library.makeFunction(name: "postprocess::vertexShader")
+    let postprocessFragmentFunction = system.library.makeFunction(name: "postprocess::fragmentShader")
+    let memorylessFragmentFunction = system.library.makeFunction(name: "memorylessFS")
     
-    var rgbTriangle: RGBTriangle!
-    private var square: Square!
-    private var axes: Axes!
+    var camera: Camera = Camera()
+    var controller: FPSController
     
-    func initMtl(_ view: MTKView) {
-        view.delegate = self
+    var scene: SceneGraph?
+//    var colorPixelFormat: MTLPixelFormat = .rgba16Float
+    
+    var light: Light = Light(intensity: 1, roughness: 0.1, ambient: 0, direction: [1, -1, 3])
+    
+    var uniform = Uniform(view: .init(diagonal: .one),
+                          projection: .init(diagonal: .one),
+                          cameraPositionAndFOV: [0, 0, 0, Float.pi / 4],
+                          planesAndframeSize: [ 1, 100, 1, 1 ],
+                          pointSizeAndCurvilinearPerspective: SIMD4<Float>(20, 0, 0, 0))
+    
+    var semaphore = DispatchSemaphore(value: 3)
+    
+    override init () {
+        let camera = Camera()
+        self.camera = camera
+        controller = FPSController(camera: camera)
         
-        if let device {
-            print("GPU: \(device.name)")
-            print("GPU Architecture: \(device.architecture.name)")
-            print("Programmable Sample Positions: \(device.areProgrammableSamplePositionsSupported)")
-            print("Raster Order Groups: \(device.areRasterOrderGroupsSupported)")
-            print("Argument Buffers: \(device.argumentBuffersSupport)")
-            print("Current Allocated Size: \(device.currentAllocatedSize) B")
-            print("Unified Memory: \(device.hasUnifiedMemory)")
-            print("D24S8 Supported: \(device.isDepth24Stencil8PixelFormatSupported)")
-            print("Headless (not connecting to a display): \(device.isHeadless)")
-            print("Low Power Mode: \(device.isLowPower)")
-            print("Removable: \(device.isRemovable)")
-            print("Location #: \(device.locationNumber)")
-            print("Max Argument Buffer Sampler Count: \(device.maxArgumentBufferSamplerCount)")
-            print("Max Buffer Length: \(device.maxBufferLength) B")
-            print("Max Threadgroup Memory Length: \(device.maxThreadgroupMemoryLength) B")
-            print("Max Transfer Rate: \(device.maxTransferRate) B/s")
-            print("Max Concurrent Compilation Task Count: \(device.maximumConcurrentCompilationTaskCount)")
-            print("Peer Count: \(device.peerCount)")
-            print("Peer Group ID: \(device.peerGroupID)")
-            print("Peer Index: \(device.peerIndex)")
-            print("Recommended Max Working Set Size: \(device.recommendedMaxWorkingSetSize) B")
-            print("Registry ID: \(device.registryID)")
-            print("Should Maximize Concurrent Compilation: \(device.shouldMaximizeConcurrentCompilation)")
-            print("Sparse Tile Size: \(device.sparseTileSizeInBytes) B")
-            print("32b Float Filtering: \(device.supports32BitFloatFiltering)")
-            print("32b MSAA: \(device.supports32BitMSAA)")
-            print("BC Texture Compression: \(device.supportsBCTextureCompression)")
-            print("Dynamic Libraries: \(device.supportsDynamicLibraries)")
-            print("Render Dynamic Libraries: \(device.supportsRenderDynamicLibraries)")
-            print("Function Pointers: \(device.supportsFunctionPointers)")
-            print("Render Function Pointers: \(device.supportsFunctionPointersFromRender)")
-            print("Motion Blur for RT: \(device.supportsPrimitiveMotionBlur)")
-            print("Pull Model Interpolation: \(device.supportsPullModelInterpolation)")
-            print("Query Texture LOD: \(device.supportsQueryTextureLOD)")
-            print("RT: \(device.supportsRaytracing)")
-            print("Shader RT: \(device.supportsRaytracingFromRender)")
-            print("Barycentric Coordinates: \(device.supportsShaderBarycentricCoordinates)")
-            view.device = device
-        }
+        let deferredRenderPipelineDescriptor = MTLRenderPipelineDescriptor()
+        deferredRenderPipelineDescriptor.vertexDescriptor = Vertex.descriptor
+        deferredRenderPipelineDescriptor.vertexFunction = postprocessVertexFunction
+        deferredRenderPipelineDescriptor.fragmentFunction = memorylessFragmentFunction
+        deferredRenderPipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.label = "Deferred Shading Pipeline State"
+        self.deferredPipelineState = try? system.device.makeRenderPipelineState(descriptor: deferredRenderPipelineDescriptor)
         
-        self.commandQueue = device?.makeCommandQueue()
-        
-        self.uniformBuffer = device?.makeBuffer(length: MemoryLayout<Uniform>.size, options: .storageModeShared)
-        
-        let depthTextureDescriptor = MTLTextureDescriptor()
-        depthTextureDescriptor.width = Int(10)
-        depthTextureDescriptor.height = Int(10)
-        depthTextureDescriptor.pixelFormat = .depth32Float
-        depthTextureDescriptor.usage = .renderTarget
-        depthTextureDescriptor.storageMode = .private
-        self.depthTexture = device?.makeTexture(descriptor: depthTextureDescriptor)
-        
-        if let device {
-            Square.initType(device)
-            Axes.initType(device)
-            RGBTriangle.initType(device)
-            
-            square = Square(device)
-            axes = Axes(device)
-            rgbTriangle = RGBTriangle(device)
-        }
-        
-        let defaultLibrary = device?.makeDefaultLibrary()
-        let vertexFunction = defaultLibrary?.makeFunction(name: "vertexShader")
-        let fragmentFunction = defaultLibrary?.makeFunction(name: "fragmentShader")
-        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
-        let vertexDescriptor = MTLVertexDescriptor()
-        // position of triangle vertices
-        vertexDescriptor.attributes[0].format = .float3
-        vertexDescriptor.attributes[0].bufferIndex = 0
-        vertexDescriptor.attributes[0].offset = MemoryLayout<Vertex>.offset(of: \.position)!
-        
-        // normal of triangle vertices
-        vertexDescriptor.attributes[1].format = .float3
-        vertexDescriptor.attributes[1].bufferIndex = 0
-        vertexDescriptor.attributes[1].offset = MemoryLayout<Vertex>.offset(of: \.normal)!
-        
-        // color of triangle vertices
-        vertexDescriptor.attributes[2].format = .float4
-        vertexDescriptor.attributes[2].bufferIndex = 0
-        vertexDescriptor.attributes[2].offset = MemoryLayout<Vertex>.offset(of: \.color)!
-        
-        // layout
-        vertexDescriptor.layouts[0].stride = MemoryLayout<Vertex>.stride
-        vertexDescriptor.layouts[0].stepFunction = .perVertex
-        
-        renderPipelineDescriptor.vertexDescriptor = vertexDescriptor
-        renderPipelineDescriptor.vertexFunction = vertexFunction
-        // fragmentFunction.
-        renderPipelineDescriptor.fragmentFunction = fragmentFunction
-        renderPipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
-        renderPipelineDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat
+        let postprocessPipelineDescriptor = MTLRenderPipelineDescriptor()
+        postprocessPipelineDescriptor.vertexDescriptor = Vertex.descriptor
+        postprocessPipelineDescriptor.vertexFunction = postprocessVertexFunction
+        postprocessPipelineDescriptor.fragmentFunction = postprocessFragmentFunction
+        postprocessPipelineDescriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = .rgba16Float
+        postprocessPipelineDescriptor.label = "Post-process Pipeline State"
+        self.postprocessPipelineState = try? system.device.makeRenderPipelineState(descriptor: postprocessPipelineDescriptor)
         
         let depthStencilDescriptor = MTLDepthStencilDescriptor()
         depthStencilDescriptor.depthCompareFunction = .lessEqual
         depthStencilDescriptor.isDepthWriteEnabled = true
+        depthStencilDescriptor.label = "Depth Stencil State"
+        self.depthStencilState = system.device.makeDepthStencilState(descriptor: depthStencilDescriptor)
         
-        self.renderPipelineState = try? device?.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
-        self.depthStencilState = device?.makeDepthStencilState(descriptor: depthStencilDescriptor)
-        camera.controller = controller
-        controller.camera = camera
+        uniformBuffer = system.device.makeBuffer(length: MemoryLayout<Uniform>.size, options: .storageModeShared)
+        lightBuffer = system.device.makeBuffer(length: MemoryLayout<Light>.size, options: .storageModeShared)
+        
+        depthTexture = system.device.makeTexture(descriptor: system.depthTextureDescriptor)!
+        positionTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        normalTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        albedoSpecularTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        refractiveIndicesRoughnessUTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        extinctionCoefficentsRoughnessVTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        hdrTexture = system.device.makeTexture(descriptor: system.hdrTextureDescriptor)!
+        
+        super.init()
+        
+        depthTexture.label = "Depth Texture"
+        positionTexture.label = "Position Texture"
+        normalTexture.label = "Normal Texture"
+        albedoSpecularTexture.label = "AlbedoSpecular Texture"
+        refractiveIndicesRoughnessUTexture.label = "Refractive Indices & Roughness U Texture"
+        extinctionCoefficentsRoughnessVTexture.label = "Extinction Coefficents & Roughness V Texture"
+        hdrTexture.label = "HDR Texture"
+    }
+    
+    private func recreateTextures(width: Int, height: Int) {
+        system.depthTextureDescriptor.width = width
+        system.depthTextureDescriptor.height = height
+        
+        system.geometryTextureDescriptor.width = width
+        system.geometryTextureDescriptor.height = height
+        
+        system.hdrTextureDescriptor.width = width
+        system.hdrTextureDescriptor.height = height
+        
+        depthTexture = system.device.makeTexture(descriptor: system.depthTextureDescriptor)!
+        positionTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        normalTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        albedoSpecularTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        refractiveIndicesRoughnessUTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        extinctionCoefficentsRoughnessVTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
+        hdrTexture = system.device.makeTexture(descriptor: system.hdrTextureDescriptor)!
+        
+        depthTexture.label = "Depth Texture"
+        positionTexture.label = "Position Texture"
+        normalTexture.label = "Normal Texture"
+        albedoSpecularTexture.label = "AlbedoSpecular Texture"
+        refractiveIndicesRoughnessUTexture.label = "Refractive Indices & Roughness U Texture"
+        extinctionCoefficentsRoughnessVTexture.label = "Extinction Coefficents & Roughness V Texture"
+        hdrTexture.label = "HDR Texture"
+        
+        setupRenderPasses()
+        startTimestamp = .now
+    }
+    
+    func setupRenderPasses() {
+        renderPassDescriptor.depthAttachment.texture = depthTexture
+        renderPassDescriptor.depthAttachment.clearDepth = 1
+        renderPassDescriptor.depthAttachment.loadAction = .clear
+        renderPassDescriptor.depthAttachment.storeAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].texture = hdrTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].loadAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].storeAction = .store
+        renderPassDescriptor.colorAttachments[ColorAttachment.position.rawValue].texture = positionTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.position.rawValue].clearColor = MTLClearColorMake(0, 0, 0, 0)
+        renderPassDescriptor.colorAttachments[ColorAttachment.position.rawValue].loadAction = .clear
+        renderPassDescriptor.colorAttachments[ColorAttachment.position.rawValue].storeAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.normal.rawValue].texture = normalTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.normal.rawValue].clearColor = MTLClearColorMake(0, 0, 0, 0)
+        renderPassDescriptor.colorAttachments[ColorAttachment.normal.rawValue].loadAction = .clear
+        renderPassDescriptor.colorAttachments[ColorAttachment.normal.rawValue].storeAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].texture = albedoSpecularTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].loadAction = .clear
+        renderPassDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].storeAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].texture = refractiveIndicesRoughnessUTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].loadAction = .clear
+        renderPassDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].storeAction = .dontCare
+        renderPassDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].texture = extinctionCoefficentsRoughnessVTexture
+        renderPassDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].loadAction = .clear
+        renderPassDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].storeAction = .dontCare
+        
+        postprocessPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].loadAction = .dontCare
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         self.resolution = size
-        camera.resolution = size
+        camera.aspectRatio = Float(size.width / size.height)
         
-        let depthTextureDescriptor = MTLTextureDescriptor()
-        depthTextureDescriptor.width = Int(size.width)
-        depthTextureDescriptor.height = Int(size.height)
-        depthTextureDescriptor.pixelFormat = .depth32Float
-        depthTextureDescriptor.usage = .renderTarget
-        depthTextureDescriptor.storageMode = .private
-        self.depthTexture = device?.makeTexture(descriptor: depthTextureDescriptor)
+        recreateTextures(width: Int(size.width), height: Int(size.height))
     }
     
     func draw(in view: MTKView) {
+        semaphore.wait()
+        
         let currentFrameTimestamp = Date.now
         let timeInterval = currentFrameTimestamp.timeIntervalSince(lastFrameTimestamp)
         lastFrameTimestamp = currentFrameTimestamp
-        
-        self.fps = 1.0 / timeInterval
-        
-        if let backgroundColor {
-            view.clearColor = MTLClearColorMake(
-                Double(backgroundColor.red),
-                Double(backgroundColor.green),
-                Double(backgroundColor.blue),
-                Double(backgroundColor.opacity))
-        }
-        view.clearDepth = 1.0
+        fps = 1.0 / timeInterval
         
         controller.update(Float(timeInterval))
         
-        self.uniformBuffer?.contents().storeBytes(of: camera.view, toByteOffset: MemoryLayout<Uniform>.offset(of: \.view)!, as: simd_float4x4.self)
-        self.uniformBuffer?.contents().storeBytes(of: camera.projection, toByteOffset: MemoryLayout<Uniform>.offset(of: \.projection)!, as: simd_float4x4.self)
-        self.uniformBuffer?.contents().storeBytes(of: camera.position, toByteOffset: MemoryLayout<Uniform>.offset(of: \.cameraPosition)!, as: SIMD3<Float>.self)
-        
-        guard let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
-        renderPassDescriptor.depthAttachment.texture = depthTexture
-        
-        guard let commandBuffer = commandQueue?.makeCommandBuffer() else { return }
-        guard let renderCommandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        renderCommandEncoder.setRenderPipelineState(renderPipelineState!)
-        renderCommandEncoder.setDepthStencilState(depthStencilState)
-        
-        renderCommandEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: iUniform)
-        renderCommandEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: iUniform)
-        
-        axes.draw(renderCommandEncoder)
-        rgbTriangle.draw(renderCommandEncoder)
-        
-        let time = currentFrameTimestamp.timeIntervalSince1970
-        square.scaling = SIMD3<Float>(Float(abs(cos(time))), Float(abs(cos(time))), Float(abs(cos(time))))
-        square.translation = SIMD3<Float>(Float(cos(time / 2) * sin(time / 3)), Float(cos(time / 3) * cos(time / 2)), Float(sin(time / 2)))
-        square.rotation = SIMD3<Float>(Float(time / 4), Float(time / 3), Float(time / 5))
-        square.draw(renderCommandEncoder)
-        
-        renderCommandEncoder.endEncoding()
+        let drawableWidth = Float(view.drawableSize.width)
+        let drawableHeight = Float(view.drawableSize.height)
         guard let drawable = view.currentDrawable else { return }
+        postprocessPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].texture = drawable.texture
+        renderPassDescriptor.renderTargetWidth = Int(drawableWidth)
+        renderPassDescriptor.renderTargetHeight = Int(drawableHeight)
+        postprocessPassDescriptor.renderTargetWidth = Int(drawableWidth)
+        postprocessPassDescriptor.renderTargetHeight = Int(drawableHeight)
+        renderPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].clearColor = clearColor
+        renderPassDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].clearColor = clearColor
+        postprocessPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].clearColor = clearColor
+
+        uniform.view = camera.view
+        uniform.projection = camera.projection
+        uniform.cameraPositionAndFOV = SIMD4<Float>(camera.position, camera.fov * Float.pi / 180)
+        uniform.planesAndframeSize = [camera.near, camera.far, drawableWidth, drawableHeight]
+        
+        uniformBuffer?.contents().storeBytes(of: uniform, as: Uniform.self)
+        lightBuffer?.contents().storeBytes(of: light, as: Light.self)
+        
+        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else { return }
+        commandBuffer.label = "Command Buffer"
+                
+        guard let renderPassEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
+        defaultMaterialWrapper.set(renderPassEncoder)
+        renderPassEncoder.label = "Combined Deferred Render Pass Encoder"
+        renderPassEncoder.setDepthStencilState(depthStencilState)
+        renderPassEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
+        scene?.root.draw(encoder: renderPassEncoder)
+        
+        renderPassEncoder.setTriangleFillMode(.fill)
+        renderPassEncoder.setRenderPipelineState(deferredPipelineState!)
+        renderPassEncoder.setFragmentBuffer(lightBuffer, offset: 0, index: BufferPosition.light.rawValue)
+        renderPassEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
+        Quad.draw(renderPassEncoder)
+        renderPassEncoder.endEncoding()
+        
+        guard let postprocessPassEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: postprocessPassDescriptor) else { return }
+        postprocessPassEncoder.label = "Post-process Pass Encoder"
+        postprocessPassEncoder.setRenderPipelineState(postprocessPipelineState!)
+        postprocessPassEncoder.setFragmentTexture(hdrTexture, index: ColorAttachment.color.rawValue)
+        postprocessPassEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
+        Quad.draw(postprocessPassEncoder)
+        postprocessPassEncoder.endEncoding()
+        
+        
         commandBuffer.present(drawable)
+        commandBuffer.addCompletedHandler { [weak self] _ in self?.semaphore.signal() }
         commandBuffer.commit() // implies an enqueue() call
     }
 }

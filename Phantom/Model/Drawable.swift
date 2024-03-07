@@ -6,6 +6,7 @@
 //
 
 import MetalKit
+import ModelIO
 
 protocol Drawable {
     func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) -> Void
@@ -16,21 +17,43 @@ class DrawableBase: Drawable, Equatable {
     
     var name: String = ""
     func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) { }
+    
+//    var boundingBox: AxisAlignedBoundingBox = .init(diagonalVertices: (.zero, .zero))
+//    func updateBoundingBox() {  }
 }
 
 class Mesh: DrawableBase {
-    let mesh: MTKMesh
+    static var geometryPassState: MTLRenderPipelineState = {
+        let descriptor = MTLRenderPipelineDescriptor()
+        descriptor.vertexDescriptor = Vertex.descriptor
+        descriptor.vertexFunction = system.library.makeFunction(name: "geometry::vertexShader")
+        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::fragmentShader")
+        descriptor.depthAttachmentPixelFormat = .depth32Float
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.label = "Geometry Pass Pipeline State"
+        return try! system.device.makeRenderPipelineState(descriptor: descriptor)
+    }()
     
-    init(mesh: MTKMesh) {
+    let mesh: MDLMesh
+    let metalKitMesh: MTKMesh
+    
+    init(mesh: MDLMesh) throws {
         self.mesh = mesh
+        self.metalKitMesh = try MTKMesh (mesh: mesh, device: system.device)
         super.init()
         super.name = mesh.name
     }
     
     override func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) {
-        if let meshBuffer = mesh.vertexBuffers.first {
-            encoder.setVertexBuffer(meshBuffer.buffer, offset: meshBuffer.offset, index: VertexBufferPosition.vertex.rawValue)
-            for submesh in mesh.submeshes {
+        if let meshBuffer = metalKitMesh.vertexBuffers.first {
+            encoder.setRenderPipelineState(Self.geometryPassState)
+            encoder.setVertexBuffer(meshBuffer.buffer, offset: meshBuffer.offset, index: BufferPosition.vertex.rawValue)
+            for submesh in metalKitMesh.submeshes {
                 encoder.drawIndexedPrimitives(type: .triangle, 
                                               indexCount: submesh.indexCount,
                                               indexType: submesh.indexType,
@@ -81,7 +104,7 @@ class Geometry: DrawableBase {
               instanceCount: Int = 1,
               baseInstance: Int = 0
     ) {
-        encoder.setVertexBuffer(vertexBuffer, offset: 0, index: VertexBufferPosition.vertex.rawValue)
+        encoder.setVertexBuffer(vertexBuffer, offset: 0, index: BufferPosition.vertex.rawValue)
         if let indices {
             encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indices.count, indexType: .uint32, indexBuffer: indexBuffer!, indexBufferOffset: 0, instanceCount: instanceCount, baseVertex: 0, baseInstance: baseInstance)
         } else {

@@ -7,6 +7,7 @@
 
 import Metal
 
+@Observable
 class BézeirCurve: DrawableBase {
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
@@ -14,17 +15,39 @@ class BézeirCurve: DrawableBase {
         descriptor.vertexFunction = system.library.makeFunction(name: "bernstein::bézeirCurveShader")
         descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::lineFragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.positionTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.normalTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.albedoSpecularTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.refractiveIndicesRoughnessUTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.extinctionCoefficentsRoughnessVTexture.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
         descriptor.label = "Geometry Pass Pipeline State for Bézeir Curves"
         return try! system.device.makeRenderPipelineState(descriptor: descriptor)
     }()
     
     var basis: BernsteinBasis
+    
+    var boundingBox: AxisAlignedBoundingBox {
+        let initialPoint = controlPoints.first!
+        let initialProjectedPoint = SIMD3<Float>(x: initialPoint.x / initialPoint.w,
+                                                 y: initialPoint.y / initialPoint.w,
+                                                 z: initialPoint.z / initialPoint.w)
+        var minPoint: SIMD3<Float> = initialProjectedPoint
+        var maxPoint: SIMD3<Float> = initialProjectedPoint
+        for i in 1..<controlPoints.count {
+            let point = controlPoints[i]
+            let projectedPoint = SIMD3<Float>(x: point.x / point.w, y: point.y / point.w, z: point.z / point.w)
+            
+            minPoint = .init(x: min(minPoint.x, projectedPoint.x),
+                             y: min(minPoint.y, projectedPoint.y),
+                             z: min(minPoint.z, projectedPoint.z))
+            
+            maxPoint = .init(x: max(maxPoint.x, projectedPoint.x),
+                             y: max(maxPoint.y, projectedPoint.y),
+                             z: max(maxPoint.z, projectedPoint.z))
+        }
+        return .init(diagonalVertices: (minPoint, maxPoint))
+    }
     
     private(set) var controlPoints: [SIMD4<Float>] {
         didSet {

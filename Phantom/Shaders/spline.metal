@@ -9,7 +9,7 @@
 
 namespace spline {
     
-void BSplineBasis::calc(float u, int i, float2 result[MAX_ORDER]) const {
+void BSplineBasis::calc(float u, int i, float4 result[MAX_ORDER]) const {
     // R: result: [ N_{i,0} ]
     // R: result: [ N_{i-1, 1}, N_{i, 1} ]
     // R: ...
@@ -19,7 +19,7 @@ void BSplineBasis::calc(float u, int i, float2 result[MAX_ORDER]) const {
     // G: result: [ N'_{i-1,1}, N'_{i,1} ]
     // G: ...
     // G: result: [ N'_{i-p,p}, ..., N'_{i,p} ]
-    result[0] = float2(1, 0);
+    result[0] = float4(1, 0, 0, 0);
     for (int p = 1; p <= degree; p++) {
         int rightTrimCount = i + p - knotCount + 2;
         int leftTrimCount = p - i;
@@ -27,36 +27,36 @@ void BSplineBasis::calc(float u, int i, float2 result[MAX_ORDER]) const {
         int firstIndex = leftTrimCount > 0 ? leftTrimCount : 1;
         int lastIndex = rightTrimCount > 0 ? p - rightTrimCount : p - 1;
         
-//        int firstID = leftTrimCount > 0 ? i - p + leftTrimCount : i - p + 1;
         int lastID = rightTrimCount > 0 ? i - rightTrimCount : i - 1;
         
-        float left, right; // terms in basis
+        float3 left, right; // terms in basis
         
         if (rightTrimCount > 0) {
-            result[p] = float2(0);
-            right = result[lastIndex].r / (knots[lastID + p + 1] - knots[lastID + 1]);
+            result[p] = float4(0);
+            right = result[lastIndex].rgb / (knots[lastID + p + 1] - knots[lastID + 1]);
         } else {
-            right = left = result[p - 1].r / (knots[i + p] - knots[i]);
-            float value = (u - knots[i]) * left;
-            float derivative = p * left;
-            result[p] = float2(value, derivative);
+            right = left = result[p - 1].rgb / (knots[i + p] - knots[i]);
+            float value = (u - knots[i]) * left.r;
+            float3 derivative = p * left;
+            result[p] = float4(value, derivative);
         }
         
         for (int j = lastIndex, id = lastID; j >= firstIndex; j--, id--) {
             // calculate result[j]
-            left = result[j - 1].r / (knots[id + p] - knots[id]);
-            float value = left * (u - knots[id]) + right * (knots[id + p + 1] - u);
-            float derivative = p * (left - right);
-            result[j] = float2(value, derivative);
+            left = result[j - 1].rgb / (knots[id + p] - knots[id]);
+            float value = left.r * (u - knots[id]) + right.r * (knots[id + p + 1] - u);
+            float3 derivative = p * (left - right);
+            
+            result[j] = float4(value, derivative);
             right = left;
         }
             
         if (leftTrimCount > 0) {
-            result[leftTrimCount - 1] = float2(0);
+            result[leftTrimCount - 1] = float4(0);
         } else {
-            float value = (knots[i + 1] - u) * right;
-            float derivative = -p * right;
-            result[0] = float2(value, derivative);
+            float value = (knots[i + 1] - u) * right.r;
+            float3 derivative = -p * right;
+            result[0] = float4(value, derivative);
         }
     }
 }
@@ -70,37 +70,237 @@ struct BSplineKernelArgument {
                                     constant BSplineKernelArgument& args [[buffer(0)]],
                                     constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
                                     constant int& intervalId [[buffer(2)]],
-                                    uint2 gid [[thread_position_in_grid]]
+                                    uint gid [[thread_position_in_grid]]
                                     ) {
     const int order = args.degree + 1;
-//    const float domainLeft = knots[args.degree];
-//    const float domainRight = knots[order];
-    
     const float domainLeft = knots[intervalId];
     const float domainRight = knots[intervalId + 1];
     
     const float intervalLength = domainRight - domainLeft;
     
     const uint width = result.get_width(0);
-    const float u = fma(gid.x, intervalLength / (width - 1), domainLeft);
+    const float u = fma(gid, intervalLength / (width - 1), domainLeft);
     
-    float2 value[MAX_ORDER] { 0 };
+    float4 value[MAX_ORDER] { 0 };
     BSplineBasis N(knots, args.knotCount, args.degree);
-//    BSplineBasis N(knots, order + order, args.degree);
     N.calc(u, intervalId, value);
     
     for (int i = 0; i < order; i++)
-        result.write(float4(value[i], 0), gid.x, i);
+        result.write(value[i], gid, i);
 }
     
-/**
- * the vertex shader
- */
+[[kernel]] void basisAt(constant BSplineKernelArgument& args [[buffer(0)]],
+                        constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
+                        constant int& intervalId [[buffer(2)]],
+                        constant float& u [[buffer(3)]],
+                        device float * result [[buffer(4)]]) {
+    
+    const int order = args.degree + 1;
+    
+    float4 value[MAX_ORDER] { 0 };
+    BSplineBasis N(knots, args.knotCount, args.degree);
+    N.calc(u, intervalId, value);
+    
+    for (int i = 0; i < order; i++)
+        result[i] = value[i].r;
+}
 
-struct KnotSpan {
-    int startControlPointIndex [[id(0)]];
-    texture1d_array<float> basis [[id(1)]]; // array size is the order of the basis
-};
+[[kernel]] void firstDerivativeAt(constant BSplineKernelArgument& args [[buffer(0)]],
+                                  constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
+                                  constant int& intervalId [[buffer(2)]],
+                                  constant float& u [[buffer(3)]],
+                                  device float * result [[buffer(4)]]) {
+    
+    const int order = args.degree + 1;
+    
+    float4 value[MAX_ORDER] { 0 };
+    BSplineBasis N(knots, args.knotCount, args.degree);
+    N.calc(u, intervalId, value);
+    
+    for (int i = 0; i < order; i++)
+        result[i] = value[i].g;
+}
+
+[[kernel]] void secondDerivativeAt(constant BSplineKernelArgument& args [[buffer(0)]],
+                                   constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
+                                   constant int& intervalId [[buffer(2)]],
+                                   constant float& u [[buffer(3)]],
+                                   device float * result [[buffer(4)]]) {
+    
+    const int order = args.degree + 1;
+    
+    float4 value[MAX_ORDER] { 0 };
+    BSplineBasis N(knots, args.knotCount, args.degree);
+    N.calc(u, intervalId, value);
+    
+    for (int i = 0; i < order; i++)
+        result[i] = value[i].b;
+}
+
+[[kernel]] void thirdDerivativeAt(constant BSplineKernelArgument& args [[buffer(0)]],
+                                  constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
+                                  constant int& intervalId [[buffer(2)]],
+                                  constant float& u [[buffer(3)]],
+                                  device float * result [[buffer(4)]]) {
+    
+    const int order = args.degree + 1;
+    
+    float4 value[MAX_ORDER] { 0 };
+    BSplineBasis N(knots, args.knotCount, args.degree);
+    N.calc(u, intervalId, value);
+    
+    for (int i = 0; i < order; i++)
+        result[i] = value[i].a;
+}
+    
+    
+[[host_name("curveFiller") kernel]] 
+void fillInterpolationMatrix(constant BSplineKernelArgument& args [[buffer(0)]],
+                             constant float * knots [[buffer(1)]], // length = (degree + 1) * 2
+                             constant int& columnCount [[buffer(2)]],
+                             device float* matrix [[buffer(3)]],
+                             constant float * samples [[buffer(4)]], // \hat{u}
+                             uint gid [[thread_position_in_grid]] // matrix[gid][...]
+                             ) {
+    const int order = args.degree + 1;
+    const float sample = samples[gid];
+    
+    float4 value[MAX_ORDER] { 0 };
+    BSplineBasis N(knots, args.knotCount, args.degree);
+    int intervalId = 0;
+    if (sample == knots[0]) {
+        while (knots[intervalId + 1] <= sample) intervalId++;
+    } else {
+        while (knots[intervalId + 1] < sample) intervalId++;
+    }
+    N.calc(sample, intervalId, value);
+    
+    for (int i = 0; i < columnCount; i++) matrix[gid * columnCount + i] = 0;
+    for (int i = 0; i < order; i++) {
+        matrix[gid * columnCount + intervalId - args.degree + i] = value[i].r;
+    }
+}
+    
+[[host_name("surfaceFiller") kernel]] 
+void fillInterpolationMatrix(constant BSplineKernelArgument& uArgs [[buffer(0)]],
+                             constant BSplineKernelArgument& vArgs [[buffer(1)]],
+                             constant float * uKnots [[buffer(2)]],
+                             constant float * vKnots [[buffer(3)]],
+                             constant int& columnCount [[buffer(4)]], // == vBasisCount * uBasisCount
+                             device float* matrix [[buffer(5)]],
+                             constant float * uSamples [[buffer(6)]],
+                             constant float * vSamples [[buffer(7)]],
+                             uint gid [[thread_position_in_grid]]
+                             ) {
+    const int uOrder = uArgs.degree + 1;
+    const int vOrder = vArgs.degree + 1;
+    const int uBasisCount = uArgs.knotCount - uOrder;
+//    const int vBasisCount = vArgs.knotCount - vOrder;
+    const float uSample = uSamples[gid];
+    const float vSample = vSamples[gid];
+    
+    float4 uValue[MAX_ORDER] { 0 };
+    float4 vValue[MAX_ORDER] { 0 };
+    
+    BSplineBasis N(uKnots, uArgs.knotCount, uArgs.degree);
+    BSplineBasis M(vKnots, vArgs.knotCount, vArgs.degree);
+    
+    int uIntervalId = 0;
+    if (uSample == uKnots[0]) {
+        while (uKnots[uIntervalId + 1] <= uSample) uIntervalId++;
+    } else {
+        while (uKnots[uIntervalId + 1] < uSample) uIntervalId++;
+    }
+    
+    int vIntervalId = 0;
+    if (vSample == vKnots[0]) {
+        while (vKnots[vIntervalId + 1] <= vSample) vIntervalId++;
+    } else {
+        while (vKnots[vIntervalId + 1] < vSample) vIntervalId++;
+    }
+    
+    N.calc(uSample, uIntervalId, uValue);
+    M.calc(vSample, vIntervalId, vValue);
+    
+    for (int k = 0; k < columnCount; k++) matrix[gid * columnCount + k] = 0;
+    for (int i = 0; i < uOrder; i++) {
+        for (int j = 0; j < vOrder; j++) {
+            matrix[gid * columnCount + (uIntervalId - uArgs.degree + i) + uBasisCount * (vIntervalId - vArgs.degree + j)] = uValue[i].r * vValue[j].r;
+        }
+    }
+}
+    
+[[host_name("uIsoCurveConstraintFiller") kernel]]
+void fillUIsoCurveConstraintMatrix(constant BSplineKernelArgument& uArgs [[buffer(0)]],
+                                   constant BSplineKernelArgument& vArgs [[buffer(1)]],
+                                   constant float * vKnots [[buffer(2)]],
+                                   constant int& columnCount [[buffer(3)]], // == vBasisCount * uBasisCount
+                                   device float* matrix [[buffer(4)]],
+                                   constant float * vSamples [[buffer(5)]],
+                                   uint2 gid [[thread_position_in_grid]] // (isoline index, control point index)
+                                   ) {
+    const int uOrder = uArgs.degree + 1;
+    const int vOrder = vArgs.degree + 1;
+    const int uBasisCount = uArgs.knotCount - uOrder;
+//    const int vBasisCount = vArgs.knotCount - vOrder;
+    const int vSampleIndex = gid.x;
+    const int uBasisIndex = gid.y;
+    const float vSample = vSamples[vSampleIndex];
+    
+    float4 vValue[MAX_ORDER] { 0 };
+    
+    BSplineBasis N(vKnots, vArgs.knotCount, vArgs.degree);
+    
+    int vIntervalId = 0;
+    if (vSample == vKnots[0]) {
+        while (vKnots[vIntervalId + 1] <= vSample) vIntervalId++;
+    } else {
+        while (vKnots[vIntervalId + 1] < vSample) vIntervalId++;
+    }
+    
+    N.calc(vSample, vIntervalId, vValue);
+    
+//    for (int k = 0; k < columnCount; k++) matrix[(vSampleIndex * (uBasisCount - 2) + uBasisIndex) * columnCount + k] = -1;
+    for (int j = 0; j < vOrder; j++) {
+        matrix[(vSampleIndex * (uBasisCount - 2) + uBasisIndex) * columnCount + (vIntervalId - vArgs.degree + j) * uBasisCount + uBasisIndex + 1] = vValue[j].r;
+    }
+}
+    
+[[host_name("vIsoCurveConstraintFiller") kernel]]
+void fillVIsoCurveConstraintMatrix(constant BSplineKernelArgument& uArgs [[buffer(0)]],
+                                   constant BSplineKernelArgument& vArgs [[buffer(1)]],
+                                   constant float * uKnots [[buffer(2)]],
+                                   constant int& columnCount [[buffer(3)]], // == vBasisCount * uBasisCount
+                                   device float* matrix [[buffer(4)]],
+                                   constant float * uSamples [[buffer(5)]],
+                                   uint2 gid [[thread_position_in_grid]] // (isoline index, control point index)
+                                   ) {
+    const int uOrder = uArgs.degree + 1;
+    const int vOrder = vArgs.degree + 1;
+    const int uBasisCount = uArgs.knotCount - uOrder;
+    const int vBasisCount = vArgs.knotCount - vOrder;
+    const int uSampleIndex = gid.x;
+    const int vBasisIndex = gid.y;
+    const float uSample = uSamples[uSampleIndex];
+    
+    float4 uValue[MAX_ORDER] { 0 };
+    
+    BSplineBasis N(uKnots, uArgs.knotCount, uArgs.degree);
+    
+    int uIntervalId = 0;
+    if (uSample == uKnots[0]) {
+        while (uKnots[uIntervalId + 1] <= uSample) uIntervalId++;
+    } else {
+        while (uKnots[uIntervalId + 1] < uSample) uIntervalId++;
+    }
+    
+    N.calc(uSample, uIntervalId, uValue);
+    
+//    for (int k = 0; k < columnCount; k++) matrix[(uSampleIndex * vBasisCount + vBasisIndex) * columnCount + k] = 0;
+    for (int i = 0; i < uOrder; i++) {
+        matrix[(uSampleIndex * (vBasisCount - 2) + vBasisIndex) * columnCount + (uIntervalId - uArgs.degree + i) + uBasisCount * (vBasisIndex + 1)] = uValue[i].r;
+    }
+}
 
 [[vertex]] RasterizerData curveShader(Vertex data [[stage_in]], // buffer 0
                                        constant Uniform& uniform [[buffer(1)]],

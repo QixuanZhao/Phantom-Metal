@@ -30,12 +30,12 @@ class BSplineBasis {
     
     private(set) var basisTextureDescriptor: MTLTextureDescriptor = {
         let descriptor = MTLTextureDescriptor()
-        descriptor.pixelFormat = .rg32Float
+        descriptor.pixelFormat = .rgba32Float
         descriptor.width = (Int(system.width) / 16) * 16
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.textureType = .type1DArray
         descriptor.arrayLength = 0
-        descriptor.storageMode = .private
+        descriptor.storageMode = .shared
         return descriptor
     }()
     
@@ -107,8 +107,24 @@ class BSplineBasis {
     private(set) var argsBuffer: MTLBuffer!
     private(set) var knotBuffer: MTLBuffer!
     private(set) var basisTextures: [MTLTexture] = []
-    static private var computerState: MTLComputePipelineState = {
+    static private(set) var computerState: MTLComputePipelineState = {
         try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::computeBSplineBasis")!)
+    }()
+    
+    static private(set) var basisCalculatorState: MTLComputePipelineState = {
+        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::basisAt")!)
+    }()
+    
+    static private(set) var derivative1CalculatorState: MTLComputePipelineState = {
+        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::firstDerivativeAt")!)
+    }()
+    
+    static private(set) var derivative2CalculatorState: MTLComputePipelineState = {
+        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::secondDerivativeAt")!)
+    }()
+    
+    static private(set) var derivative3CalculatorState: MTLComputePipelineState = {
+        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::thirdDerivativeAt")!)
     }()
     
     func multiplicity(of value: Float) -> Int {
@@ -143,35 +159,22 @@ class BSplineBasis {
         }
     }
     
-    struct BSplineKernelArgument {
-        var degree: Int32
-        var knotCount: Int32
-    }
-    
-    func updateTexture(onComplete handler: @escaping (Bool) -> Void) {
+    func updateTexture() {
         if requireUpdateBasis {
+            recreateTexture()
             guard let buffer = system.commandQueue.makeCommandBuffer() else { return }
             if let splineEncoder = buffer.makeComputeCommandEncoder() {
                 encodeTextureUpdate(splineEncoder)
                 splineEncoder.endEncoding()
             }
-            buffer.addCompletedHandler { [weak self] _ in
-                self?.reader.loadData()
-                handler(true)
-            }
             buffer.commit()
-        } else {
-            handler(false)
+            buffer.waitUntilCompleted()
+            self.reader.updated = false
         }
-    }
-    
-    func updateTexture(onComplete handler: @escaping () -> Void = { }) {
-        updateTexture { _ in handler() }
     }
     
     private func encodeTextureUpdate(_ encoder: MTLComputeCommandEncoder) {
         if requireUpdateBasis {
-            recreateTexture()
             updateKnotBuffer()
             
             let args = BSplineKernelArgument(degree: Int32(degree),
@@ -207,14 +210,12 @@ class BSplineBasis {
     ) {
         self.degree = degree
         self.knots = knots
-        
         self.reader = BSplineBasisReader()
+        self.reader.basis = self
         
         self.argsBuffer = system.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size, options: .storageModeShared)
         self.knotBuffer = system.device.makeBuffer(bytes: knotVector, length: MemoryLayout<Float>.stride * knots.count, options: .storageModeShared)
-        self.basisTextureDescriptor.storageMode = .private
         self.basisTextureDescriptor.arrayLength = order
-        self.reader.basis = self
         
         for i in 1..<knots.count {
             let texture = system.device.makeTexture(descriptor: basisTextureDescriptor)!

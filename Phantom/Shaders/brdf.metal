@@ -209,7 +209,9 @@ float3 brdf::diffuseReflectance(float sigma, float3 lightDir, float3 viewDir, fl
     float C2 = cosine > 0 ? (0.45 * sin(alpha) * factor23) : (0.45 * (fma(-fracBetaSquared, fracBeta, sin(alpha))) * factor23);
     float C3 = 2 * 2 * 0.125 / (M_PI_F * M_PI_F) * factor23 * alpha * alpha * fracBetaSquared;
     
-    float L1 = fma(C3, (1 - abs(cosine)) * tan(mean), fma(C2, cosine * tan(beta), C1));
+    float tanMean = tan(mean);
+    float tanBeta = tan(beta);
+    float L1 = fma(C3, (1 - abs(cosine)) * tanMean, fma(C2, cosine * tanBeta, C1));
     float3 L2 = albedo * 0.17 * sigmaSquared / (sigmaSquared + 0.13) * (fma(-cosine, fracBetaSquared, 1));
     
     return (L1 + L2) / M_PI_F;

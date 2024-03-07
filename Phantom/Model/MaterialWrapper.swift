@@ -1,5 +1,5 @@
 //
-//  Material.swift
+//  MaterialWrapper.swift
 //  Phantom
 //
 //  Created by TSAR Weasley on 2023/12/5.
@@ -8,7 +8,9 @@
 import Foundation
 import Metal
 
-class MaterialWrapper: Identifiable {
+class MaterialWrapper: Identifiable, Equatable {
+    static func == (lhs: MaterialWrapper, rhs: MaterialWrapper) -> Bool { lhs.id == rhs.id }
+    
     var id: String = "Material"
     var material: Material {
         didSet { requireStore = true }
@@ -77,7 +79,8 @@ class MaterialWrapper: Identifiable {
     
     func set(_ encoder: MTLRenderCommandEncoder) {
         if requireStore {
-            self.materialBuffer?.contents().storeBytes(of: material, as: Material.self)
+            self.materialBuffer?.contents().storeBytes(of: material, as: Material.self).self
+            requireStore = false
         }
         encoder.setFragmentBuffer(materialBuffer, offset: 0, index: BufferPosition.material.rawValue)
     }

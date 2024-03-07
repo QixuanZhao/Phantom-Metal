@@ -65,9 +65,7 @@ struct BSplineSurfaceConstructor: View {
         Button {
             showConstructor = true
         } label: {
-            HStack {
-                Image(systemName: "skew")
-            }
+            Label("B-Spline Surface", systemImage: "skew")
         }.popover(isPresented: $showConstructor) {
             knotPanel
         }
@@ -75,5 +73,7 @@ struct BSplineSurfaceConstructor: View {
 }
 
 #Preview {
-    BSplineSurfaceConstructor()
+    let drawables = DrawableCollection()
+    
+    return BSplineSurfaceConstructor().environment(drawables)
 }

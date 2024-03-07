@@ -31,7 +31,7 @@ namespace geometry {
         out.globalNormal   = globalNormal.xyz;
         
         const float actualSize = uniform.pointSizeAndCurvilinearPerspective.x;
-        out.pointSize = actualSize / distance;
+        out.pointSize = actualSize / distance + actualSize / 2;
         
         return out;
     }
@@ -166,7 +166,11 @@ namespace deferred {
             bitangent = cross(globalNormal.xyz, tangent);
         }
         
+        float3 viewDirection = uniform.cameraPositionAndFOV.xyz - globalPosition;
+        if (dot(viewDirection, globalNormal) < 0) globalNormal = -globalNormal;
+        
         if (position_normalFormat.w != 0) {
+            Light forthLight = light;
             float3 illumination = analytical::parallelLight(globalNormal.xyz, tangent, bitangent,
                                                             globalPosition.xyz,
                                                             uniform.cameraPositionAndFOV.xyz,
@@ -175,9 +179,22 @@ namespace deferred {
                                                             refractiveIndicesRoughnessU.xyz,
                                                             extinctionCoefficentsRoughnessV.xyz,
                                                             float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
-                                                            light);
+                                                            forthLight);
+            Light counterLight = light;
+            counterLight.direction = -light.direction;
+            illumination += analytical::parallelLight(globalNormal.xyz, tangent, bitangent,
+                                                      globalPosition.xyz,
+                                                      uniform.cameraPositionAndFOV.xyz,
+                                                      (1 - albedoSpecular.w),
+                                                      albedoSpecular.rgb,
+                                                      refractiveIndicesRoughnessU.xyz,
+                                                      extinctionCoefficentsRoughnessV.xyz,
+                                                      float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
+                                                      counterLight);
             illumination += light.ambient;
             surfaceColor.xyz *= illumination;
+            
+            
         }
         
         out.color = surfaceColor;

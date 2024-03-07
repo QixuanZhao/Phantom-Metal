@@ -8,6 +8,26 @@
 import Foundation
 
 extension BSplineBasis {
+    static func commonKnots(of bases: [BSplineBasis]) -> [BSplineBasis.Knot] {
+        var knots: [BSplineBasis.Knot] = []
+        for basis in bases {
+            var index = 0
+            for knot in basis.knots {
+                while index < knots.count && knots[index].value < knot.value {
+                    index = index + 1
+                }
+                
+                if index == knots.count {
+                    knots.append(knot)
+                } else if knots[index].value == knot.value {
+                    knots[index].multiplicity = max(knots[index].multiplicity, knot.multiplicity)
+                } else {
+                    knots.insert(knot, at: index)
+                }
+            }
+        }
+        return knots
+    }
     
     func containingKnotSpans(of parameter: Float) -> [KnotSpan] {
         self.knotSpans.filter { span in

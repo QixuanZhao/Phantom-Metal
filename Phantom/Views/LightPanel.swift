@@ -8,8 +8,24 @@
 import SwiftUI
 
 struct LightPanel: View {
+    @Environment(Renderer.self) private var renderer: Renderer
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Grid (alignment: .leadingFirstTextBaseline) {
+            GridRow {
+                Text("Intensity")
+                Slider(value: .init(get: { renderer.light.intensity },
+                                    set: { renderer.light.intensity = $0 }),
+                       in: 0...5)
+            }
+            
+            GridRow {
+                Text("Ambient")
+                Slider(value: .init(get: { renderer.light.ambient },
+                                    set: { renderer.light.ambient = $0 }),
+                       in: 0...0.1)
+            }
+        }
     }
 }
 

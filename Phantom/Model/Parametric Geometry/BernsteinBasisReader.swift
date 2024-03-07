@@ -7,6 +7,7 @@
 
 import Metal
 
+@Observable
 class BernsteinBasisReader {
     weak var basis: BernsteinBasis?
     

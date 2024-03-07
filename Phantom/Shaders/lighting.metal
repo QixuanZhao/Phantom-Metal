@@ -15,7 +15,7 @@ float3 analytical::parallelLight (float3 normal, float3 tangent, float3 bitangen
                                   float3 refractive,
                                   float3 extinction,
                                   float2 roughness,
-                                  constant Light& light) {
+                                  thread const Light& light) {
     if (length_squared(normal) == 0) return float3(1); // ignore vectors
     
     const float3 lightDirection = normalize(light.direction);
@@ -23,6 +23,7 @@ float3 analytical::parallelLight (float3 normal, float3 tangent, float3 bitangen
     const float3 halfwayVector  = normalize(lightDirection + viewDirection);
     
     const float cosine = max(dot(lightDirection, normal), 0.0);
+//    if (dot(viewDirection, normal) < 0) normal = -normal;
     
     const float2x3 specularFresnel = brdf::specularReflectance(normal, tangent, bitangent,
                                                       lightDirection,

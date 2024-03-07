@@ -90,7 +90,7 @@ public:
 //    return numerator / denominator;
 //}
 
-template<typename T, uint dimension>
+template<typename T, int dimension>
 class ComplexVector {
 public:
     Complex<T> vec[dimension];

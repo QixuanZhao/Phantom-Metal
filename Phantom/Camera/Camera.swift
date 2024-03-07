@@ -27,8 +27,8 @@ class Camera: ObservableObject {
     }
     
     var aspectRatio: Float = 1
-    var fov: Float = 45
-    var far: Float = 100
+    var fov: Float = 45 // in degrees
+    var far: Float = 50000
     var near: Float = 1
     var projection: simd_float4x4 {
         let tangentTheta = tan(fov * Float.pi / 360)

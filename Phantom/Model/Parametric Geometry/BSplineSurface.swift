@@ -16,12 +16,12 @@ class BSplineSurface: DrawableBase {
         descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::fragmentShader")
 //        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::patchFragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.positionTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.normalTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.albedoSpecularTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.refractiveIndicesRoughnessUTexture.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.extinctionCoefficentsRoughnessVTexture.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
         descriptor.maxTessellationFactor = 64
         descriptor.isTessellationFactorScaleEnabled = false
         descriptor.tessellationControlPointIndexType = .none
@@ -39,6 +39,30 @@ class BSplineSurface: DrawableBase {
     
 //    var uResolution: Float = 1 / Float((Int(system.width) / 16) * 16)
 //    var vResolution: Float = 1 / Float((Int(system.width) / 16) * 16)
+    
+    var boundingBox: AxisAlignedBoundingBox {
+        let initialPoint = controlNet.first!.first!
+        let initialProjectedPoint = SIMD3<Float>(x: initialPoint.x / initialPoint.w,
+                                                 y: initialPoint.y / initialPoint.w,
+                                                 z: initialPoint.z / initialPoint.w)
+        var minPoint: SIMD3<Float> = initialProjectedPoint
+        var maxPoint: SIMD3<Float> = initialProjectedPoint
+        for i in 0..<controlNet.count {
+            for j in 0..<controlNet[i].count {
+                let point = controlNet[i][j]
+                let projectedPoint = SIMD3<Float>(x: point.x / point.w, y: point.y / point.w, z: point.z / point.w)
+                
+                minPoint = .init(x: min(minPoint.x, projectedPoint.x),
+                                 y: min(minPoint.y, projectedPoint.y),
+                                 z: min(minPoint.z, projectedPoint.z))
+                
+                maxPoint = .init(x: max(maxPoint.x, projectedPoint.x),
+                                 y: max(maxPoint.y, projectedPoint.y),
+                                 z: max(maxPoint.z, projectedPoint.z))
+            }
+        }
+        return .init(diagonalVertices: (minPoint, maxPoint))
+    }
     
     private(set) var controlNet: [[SIMD4<Float>]] {
         didSet { requireUpdate = true }
@@ -60,7 +84,7 @@ class BSplineSurface: DrawableBase {
     }
     
     private var requireUpdate = true
-    var showControlNet: Bool = true
+    var showControlNet: Bool = false
     
     private var tessellationFactorBuffer: MTLBuffer = {
         let buffer = system.device.makeBuffer(length: MemoryLayout<MTLQuadTessellationFactorsHalf>.size)!
@@ -70,10 +94,10 @@ class BSplineSurface: DrawableBase {
     
     
     private var requireFactorsFill = true
-    var edgeTessellationFactors: SIMD4<Float> = [16, 16, 16, 16] {
+    var edgeTessellationFactors: SIMD4<Float> = [64, 64, 64, 64] {
         didSet { requireFactorsFill = true }
     }
-    var insideTessellationFactors: SIMD2<Float> = [16, 16] {
+    var insideTessellationFactors: SIMD2<Float> = [64, 64] {
         didSet { requireFactorsFill = true }
     }
     
@@ -237,7 +261,6 @@ class BSplineSurface: DrawableBase {
         for (i, uSpan) in uSpans.enumerated() {
             encoder.setVertexTexture(uBasis.basisTextures[i], index: 0)
             for (j, vSpan) in vSpans.enumerated() {
-//                if j != 1 || i != 0 { continue }
                 encoder.setVertexTexture(vBasis.basisTextures[j], index: 1)
                 encoder.setVertexBytes([Int32(uSpan.end.firstIndex - uBasis.order),
                                         Int32(vSpan.end.firstIndex - vBasis.order),

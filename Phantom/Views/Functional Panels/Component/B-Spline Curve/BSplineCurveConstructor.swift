@@ -35,7 +35,7 @@ struct BSplineCurveConstructor: View {
     var knotPanel: some View {
         VStack {
             BSplineBasisKnotEditor(basis: $basis)
-            BSplineBasisChart(basis: basis).frame(height: 300)
+            BSplineBasisChart(basis: basis).frame(height: 300).controlSize(.small)
             
             Button {
                 var cp: [SIMD4<Float>] = []
@@ -62,9 +62,7 @@ struct BSplineCurveConstructor: View {
         Button {
             showConstructor = true
         } label: {
-            HStack {
-                Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-            }
+            Label("B-Spline Curve", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
         }.popover(isPresented: $showConstructor) {
             knotPanel
         }

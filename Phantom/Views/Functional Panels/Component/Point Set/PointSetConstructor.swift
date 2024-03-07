@@ -6,13 +6,32 @@
 //
 
 import SwiftUI
+import simd
 
 struct PointSetConstructor: View {
+    @State private var showConstructor = false
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Button {
+            showConstructor = true
+        } label: {
+            Label("Point Set", systemImage: "chart.dots.scatter")
+        }.popover(isPresented: $showConstructor) {
+            TabView {
+                PlainPointSetPanel().tabItem { Text("Plain") }
+                IntersectionPointPanel().tabItem { Text("Intersection") }
+            }.frame(minWidth: 300, minHeight: 400).padding()
+        }
     }
 }
 
 #Preview {
-    PointSetConstructor()
+    let drawables = DrawableCollection()
+    drawables.insert(key: "Curve 1", value: BSplineCurve())
+    drawables.insert(key: "Curve 2", value: BSplineCurve())
+    drawables.insert(key: "Curve 3", value: BSplineCurve())
+    drawables.insert(key: "Curve 4", value: BSplineCurve())
+    
+    return PointSetConstructor().padding()
+        .environment(drawables)
 }

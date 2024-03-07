@@ -24,7 +24,7 @@ class FPSController: CameraController {
     private var firstPoll = true
     private(set) var cursor: CGPoint = .zero
     var sensitivity: Float = 1.0
-    var velocity: Float = 1.0
+    var velocity: Float = 500
     var viewLock = true
     var motionLock = false
     

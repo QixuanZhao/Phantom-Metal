@@ -7,6 +7,7 @@
 
 import Metal
 
+@Observable
 class BernsteinBasis {
     var degree: Int {
         didSet {
@@ -47,17 +48,22 @@ class BernsteinBasis {
     }
     
     func updateTexture() {
-        guard let buffer = system.commandQueue.makeCommandBuffer() else { return }
-        if let encoder = buffer.makeComputeCommandEncoder() {
-            let threadsPerThreadgroup = MTLSize(width: 16, height: 1, depth: 1)
-            let threadgroupsPerGrid = MTLSize(width: Int(system.width) / 16, height: 1, depth: 1)
-            
-            encoder.setComputePipelineState(Self.computerState)
-            encoder.setTexture(basisTexture, index: 0)
-            encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-            encoder.endEncoding()
+        if requireRecreateBasisTexture {
+            guard let buffer = system.commandQueue.makeCommandBuffer() else { return }
+            if let encoder = buffer.makeComputeCommandEncoder() {
+                let threadsPerThreadgroup = MTLSize(width: 16, height: 1, depth: 1)
+                let threadgroupsPerGrid = MTLSize(width: Int(system.width) / 16, height: 1, depth: 1)
+                
+                encoder.setComputePipelineState(Self.computerState)
+                encoder.setTexture(basisTexture, index: 0)
+                encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+                encoder.endEncoding()
+            }
+            buffer.addCompletedHandler { [weak self] _ in
+                self?.reader.loadData()
+            }
+            buffer.commit()
         }
-        buffer.commit()
     }
     
     init(degree: Int) {

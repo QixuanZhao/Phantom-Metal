@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+struct GuidanceError {
+    let maxError: Float
+    let minError: Float
+    let meanError: Float
+}

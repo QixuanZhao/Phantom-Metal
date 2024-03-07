@@ -40,7 +40,6 @@ struct DrawableTable: View {
     @Environment(DrawableCollection.self) private var drawables
     
     @Binding var selected: String?
-    @State private var showExporter: Bool = false
     static private(set) var placeholder = DrawableItem(name: "", type: .none)
     
     struct DrawableItem: Identifiable {
@@ -49,13 +48,20 @@ struct DrawableTable: View {
         let type: `Type`
         
         enum `Type`: String {
-            case geometry, mesh, curve, surface, none
+            case geometry, mesh
+            case pointSet = "point set"
+            case bézeirCurve = "Bézeir curve"
+            case BSplineCurve = "B-spline curve"
+            case BSplineSurface = "B-spline surface"
+            case none
             static func fromDrawable(_ drawable: Phantom.Drawable) -> `Type` {
                 switch drawable {
                 case is Geometry: .geometry
                 case is Mesh: .mesh
-                case is BSplineCurve: .curve
-                case is BSplineSurface: .surface
+                case is PointSet: .pointSet
+                case is BSplineCurve: .BSplineCurve
+                case is BézeirCurve: .bézeirCurve
+                case is BSplineSurface: .BSplineSurface
                 default: .none
                 }
             }
@@ -70,40 +76,56 @@ struct DrawableTable: View {
     }
     
     var generatorRow: some View {
-        HStack {
-            ModelLoader()
-            BSplineCurveConstructor()
-            BSplineSurfaceConstructor()
-        }
+        Grid (alignment: .leading, verticalSpacing: 5) {
+            GridRow {
+                ModelLoader()
+                PointSetConstructor()
+                BézeirCurveConstructor()
+                BSplineCurveConstructor()
+                BSplineInterpolatedCurveConstructor()
+                BSplineSurfaceConstructor()
+                LoftedSurfaceConstructor()
+                GordonSurfaceConstructor()
+                LowGordonSurfaceConstructor()
+            }
+            GridRow {
+                
+            }
+        }.labelStyle(.iconOnly)
     }
     
     var body: some View {
-        Table(of: DrawableItem.self, selection: $selected) {
-            TableColumn("Name") { data in
-                if data.type == .none { generatorRow }
-                else { Text(data.name) }
-            }
-            TableColumn("Type") { data in
-                if data.type != .none {
+        VStack (spacing: .zero) {
+            Table(of: DrawableItem.self, selection: $selected) {
+                TableColumn("Name") { data in
+                    Text(data.name)
+                }.width(min: 110)
+                TableColumn("Type") { data in
                     Text(data.type.rawValue)
-                }
-            }.width(ideal: 50)
-        } rows: {
-            ForEach (drawableTableData) { data in
-                TableRow(data).contextMenu {
-                    Button {
-                        drawables.remove(key: data.name)
-                    } label: { Label("Delete", systemImage: "trash") }
+                }.width(ideal: 50)
+            } rows: {
+                ForEach (drawableTableData) { data in
+                    TableRow(data).contextMenu {
+                        Button {
+                            drawables.remove(key: data.name)
+                        } label: { Label("Delete", systemImage: "trash") }
+                    }
                 }
             }
-            TableRow(Self.placeholder)
+            generatorRow
+                .lineLimit(1)
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.secondary)
+                .padding()
         }
     }
 }
 
 #Preview {
     let collection = DrawableCollection()
-    return HStack {
+    collection.insert(key: "B-Spline Curve", value: BSplineCurve())
+    collection.insert(key: "Surface", value: BSplineSurface())
+    return HSplitView {
         DrawableTable(selected: .constant(nil))
         DrawableNameList(selected: .constant(nil))
     }

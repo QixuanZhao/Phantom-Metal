@@ -9,22 +9,29 @@ import SwiftUI
 import MetalKit
 
 struct MetalView: NSViewRepresentable {
-    @EnvironmentObject private var renderer: Renderer
+    @Environment(Renderer.self) private var renderer: Renderer
+    @Environment(SceneGraph.self) private var scene: SceneGraph
     
     public func makeNSView(context: Context) -> MTKView {
+        renderer.scene = scene
+        
         let view = MTKView()
+        view.layer?.wantsExtendedDynamicRangeContent = true
         view.focusRingType = .none
-        renderer.initMtl(view)
+        view.device = system.device
+        view.delegate = renderer
+        view.colorPixelFormat = .rgba16Float
+        view.colorspace = .init(name: CGColorSpace.extendedLinearDisplayP3)
         return view
     }
     
-    public func updateNSView(_ nsView: MTKView, context: Context) {
-    }
+    public func updateNSView(_ view: MTKView, context: Context) { }
     
     public typealias NSViewType = MTKView
 }
 
 #Preview {
     MetalView()
-        .environmentObject(Renderer())
+        .environment(Renderer())
+        .environment(SceneGraph())
 }

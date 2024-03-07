@@ -26,7 +26,7 @@ public:
      * i for knot interval index
      * u for parameter
      */
-    void calc(float u, int i, float2 result[MAX_ORDER]) const;
+    void calc(float u, int i, float4 result[MAX_ORDER]) const;
 };
 
 }
