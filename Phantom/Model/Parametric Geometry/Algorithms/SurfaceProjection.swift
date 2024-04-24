@@ -63,24 +63,10 @@ extension BSplineCurve {
             let tangent = potentialTangent[tangentIndex]
             
             let curvature = self.points(at: ui, derivativeOrder: 2)[tangentIndex]
-            
-//            guard let tangent = self.point(at: ui, derivativeOrder: 1) else {
-//                print("1st derivative does not exist")
-//                return ui
-//            }
-            
-//            guard let curvature = self.point(at: ui, derivativeOrder: 2) else {
-//                print("2nd derivative does not exist")
-//                return ui
-//            }
-            
-//            let tangents = self.points(at: ui, derivativeOrder: 1)
-//            let tangent = if tangents.count > 1 { tangents.last! } else { tangents.first! }
             let velocity2 = length_squared(tangent)
             
             let offsetLength = length(offset)
             let cosine = abs(dot(offset, tangent) / (length(offset) * length(tangent)))
-//            print("o: \(offsetLength), c: \(cosine), u: \(ui)")
             let pointCoincident = offsetLength < e1
             let cosineIsZero = cosine < e2
             if pointCoincident && cosineIsZero {
@@ -182,13 +168,12 @@ extension BSplineSurface {
                  e1: Float = 1e-6,
                  e2: Float = 1e-6,
                  maxIteration: Int = 100) -> SIMD2<Float> {
-        var iteration = 0
         var uvi = uv0
         
         let intervalU = spanU ?? (self.uBasis.knots.first!.value ... self.uBasis.knots.last!.value)
         let intervalV = spanV ?? (self.vBasis.knots.first!.value ... self.vBasis.knots.last!.value)
         
-        while true {
+        for iteration in 0..<maxIteration {
             let offset = self.point(at: uvi)! - point
             
             let potentialTangentU = self.points(at: uvi, derivativeOrder: (1, 0)).flatMap { $0 }
@@ -233,27 +218,23 @@ extension BSplineSurface {
             let deltaV = (b * n - a * m) / denom
             uvi = uvi + SIMD2<Float>(x: deltaU, y: deltaV)
             
-            iteration = iteration + 1
-            
             uvi = clamp(uvi, min: [intervalU.lowerBound, intervalV.lowerBound], max: [intervalU.upperBound, intervalV.upperBound])
             
 //            if length(tangentU * (uvi.x - uvj.x) + tangentV * (uvi.y - uvj.y)) < e1 || pointCoincident || cosineIsZero {
 //                return uvi
 //            }
             
-            if length(tangentU * (uvi.x - uvj.x) + tangentV * (uvi.y - uvj.y)) < e1 {
+            if length(tangentU * deltaU + tangentV * deltaV) < e1 {
                 return uvi
             }
             
             if pointCoincident || cosineIsZero {
                 return uvj
             }
-            
-            if iteration >= maxIteration {
-                print("max iteration")
-                return uvi
-            }
         }
+        
+        print("max iteration")
+        return uvi
     }
     
 //    func inverse(_ point: SIMD3<Float>,

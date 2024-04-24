@@ -216,7 +216,6 @@ struct SceneNodeView: View {
     return ScrollView {
         SceneNodeView(node: node)
         VStack {
-//            DrawableList(selected: .constant(nil))
             DrawableNameList(selected: .constant(nil))
             MaterialNameList(selected: .constant(nil))
         }.frame(height: 300)

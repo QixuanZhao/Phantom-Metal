@@ -61,17 +61,6 @@ namespace geometry {
         return out;
     }
     
-//    /**
-//     * the patch fragment shader
-//     */
-//    [[early_fragment_tests, fragment]] GeometryData patchFragmentShader(RasterizerData in [[stage_in]]) {
-//        GeometryData out;
-//        out.albedoSpecular = in.color;
-//        out.normal = length_squared(in.globalNormal) > 0 ? float4(normalize(in.globalNormal), 0) : float4(0);
-//        out.position_normalFormat = float4(in.globalPosition, 1); // set w = 1 to use (x, y, z) normal format
-//        return out;
-//    }
-    
     /**
      * the line fragment shader (can be used to draw axes, curves, etc.)
      */

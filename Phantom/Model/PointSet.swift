@@ -27,7 +27,7 @@ class PointSet: DrawableBase {
     init(points: [SIMD3<Float>]) {
         self.points = points
         self.vertices = points.map {
-            Vertex(position: $0, color: .one)
+            Vertex(position: $0, color: [0, 0, 0, 1])
         }
     }
 }

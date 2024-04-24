@@ -107,7 +107,7 @@ extension BSplineCurve {
                 uvi.1 = intervalV.upperBound
             }
             
-            if length((ui - uj) * tangentA + (vi - vj) * tangentB) < e1 {
+            if length(deltaU * tangentA + deltaV * tangentB) < e1 {
                 return uvi
             }
             

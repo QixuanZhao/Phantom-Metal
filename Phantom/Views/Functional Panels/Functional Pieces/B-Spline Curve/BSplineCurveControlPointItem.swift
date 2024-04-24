@@ -1,16 +1,16 @@
 //
-//  BézeirCurveControlPointItem.swift
+//  BSplineCurveControlPointItem.swift
 //  Phantom
 //
-//  Created by TSAR Weasley on 2024/1/3.
+//  Created by TSAR Weasley on 2023/12/15.
 //
 
 import SwiftUI
 
-struct BézeirCurveControlPointItem: View {
+struct BSplineCurveControlPointItem: View {
     @Environment(\.self) private var environment
     
-    var curve: BézeirCurve
+    var curve: BSplineCurve
     var controlPointIndex: Int
     
     private let x: Binding<Float>
@@ -29,8 +29,7 @@ struct BézeirCurveControlPointItem: View {
                 Text("\(controlPointIndex)")
                 Image(systemName: "square.fill")
                 .foregroundColor(
-                    Color(.displayP3,
-                          red: Double(curve.controlPointColor[controlPointIndex].x),
+                    Color(red: Double(curve.controlPointColor[controlPointIndex].x),
                           green: Double(curve.controlPointColor[controlPointIndex].y),
                           blue: Double(curve.controlPointColor[controlPointIndex].z),
                           opacity: Double(curve.controlPointColor[controlPointIndex].w)))
@@ -40,9 +39,8 @@ struct BézeirCurveControlPointItem: View {
         .popover(isPresented: $showPositionPanel) {
             VStack {
                 HStack {
-                    ColorPicker("Color",
-                                selection: .init(get: { Color(.displayP3,
-                                                              red: Double(curve.controlPointColor[controlPointIndex].x),
+                    ColorPicker("Color", 
+                                selection: .init(get: { Color(red: Double(curve.controlPointColor[controlPointIndex].x),
                                                               green: Double(curve.controlPointColor[controlPointIndex].y),
                                                               blue: Double(curve.controlPointColor[controlPointIndex].z),
                                                               opacity: Double(curve.controlPointColor[controlPointIndex].w)) },
@@ -77,7 +75,7 @@ struct BézeirCurveControlPointItem: View {
     }
         
     
-    init(curve: BézeirCurve,
+    init(curve: BSplineCurve,
          controlPointIndex: Int) {
         self.curve = curve
         self.controlPointIndex = controlPointIndex
@@ -94,5 +92,6 @@ struct BézeirCurveControlPointItem: View {
 }
 
 #Preview {
-    BézeirCurveControlPointItem(curve: BézeirCurve(), controlPointIndex: 0)
+    BSplineCurveControlPointItem(curve: BSplineCurve(),
+                                 controlPointIndex: 1)
 }

@@ -27,6 +27,6 @@ class LineSegments: DrawableBase {
     
     init(segments: [(SIMD3<Float>, SIMD3<Float>)]) {
         self.segments = segments
-        self.vertices = segments.flatMap { [$0.0, $0.1] }.map { Vertex(position: $0, color: .one) }
+        self.vertices = segments.flatMap { [$0.0, $0.1] }.map { Vertex(position: $0, color: [0, 0, 0, 1]) }
     }
 }

@@ -22,12 +22,13 @@ extension BSplineBasis.IndexedKnot: Hashable {
 struct BSplineBasisChart: View {
     let basis: BSplineBasis
     
-//    @State private var reader: BSplineBasisReader = BSplineBasisReader()
     @State private var derivativeOrder: Int = 0
     @State private var showComputeGraph = false
+    @State private var showChartExporter = false
+    @State private var chartDocument: JSONDocument = .init()
     
-//    @State private var hoverredBasisId: Int?
-//    @State private var hoverredBasisDegree: Int?
+    private var lowerbound: Float { min(basis.knots.first!.value, basis.knots.last!.value) }
+    private var upperbound: Float { max(basis.knots.first!.value, basis.knots.last!.value) }
     
     private var colorStart: Color {
         Color.primary.opacity(0.4)
@@ -51,16 +52,40 @@ struct BSplineBasisChart: View {
                         Spacer()
                     }
                 }
-                Button {
-                    showComputeGraph = true
-                } label: {
-                    Label("Compute Graph", systemImage: "arrow.triangle.merge")
-                }.labelStyle(.iconOnly).buttonStyle(.borderless)
-                    .popover(isPresented: $showComputeGraph) {
+                HStack {
+                    Button {
+                        showComputeGraph = true
+                    } label: {
+                        Label("Compute Graph", systemImage: "arrow.triangle.merge")
+                    }.popover(isPresented: $showComputeGraph) {
                         ScrollView ([.horizontal, .vertical]) {
                             BSplineBasisComputeGraph(basis: basis)
                         }.frame(width: 1000)
                     }
+                    
+                    Button {
+                        let samples = if derivativeOrder == 1 { basis.reader.firstDerivativeSamples }
+                        else if derivativeOrder == 2 { basis.reader.secondDerivativeSamples }
+                        else if derivativeOrder == 3 { basis.reader.thirdDerivativeSamples }
+                        else { basis.reader.samples }
+                        
+                        if let data = JSONObjectParser.dump(samples: samples) {
+                            chartDocument.json = String(decoding: data, as: UTF8.self)
+                            showChartExporter = true
+                        }
+                    } label: {
+                        Label("Export Chart", systemImage: "chart.xyaxis.line")
+                    }.fileExporter(isPresented: $showChartExporter,
+                                   document: chartDocument,
+                                   contentType: .json) { result in
+                        switch result {
+                        case .success(let url):
+                            print("save to \(url)")
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                }.labelStyle(.iconOnly).buttonStyle(.borderless)
             }
             
             VStack {
@@ -87,7 +112,8 @@ struct BSplineBasisChart: View {
                                 .foregroundStyle(Color.secondary.opacity(Double(knot.multiplicity) / Double(basis.order)))
                             }
                         }
-                    }.chartLegend(.hidden).chartYScale(domain: [0, 1])
+                    }.chartLegend(.hidden).chartYScale(domain: 0...1)
+                    .chartXScale(domain: lowerbound ... upperbound)
                     .chartForegroundStyleScale(range: Gradient(colors: [colorStart, colorEnd]))
                     .blur(radius: basis.reader.updated ? 0 : 10)
                 } else {
@@ -128,6 +154,7 @@ struct BSplineBasisChart: View {
                             }
                         }
                     }.chartLegend(.hidden)
+                    .chartXScale(domain: lowerbound ... upperbound)
                     .chartForegroundStyleScale(range: Gradient(colors: [colorStart, colorEnd]))
                     .blur(radius: basis.reader.updated ? 0 : 10)
                 }

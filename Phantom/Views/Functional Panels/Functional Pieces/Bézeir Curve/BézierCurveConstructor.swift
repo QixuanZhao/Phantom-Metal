@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BézeirCurveConstructor: View {
+struct BézierCurveConstructor: View {
     @Environment(DrawableCollection.self) private var drawables
     
     @State private var showConstructor = false
@@ -51,7 +51,7 @@ struct BézeirCurveConstructor: View {
                         cp.append([cos(Float(i)) * Float(i), sin(Float(i)) * Float(i), Float(i), 1])
                     }
                     
-                    let curve = BézeirCurve(controlPoints: cp, degree: basis.degree)
+                    let curve = BézierCurve(controlPoints: cp, degree: basis.degree)
                     let name = drawables.uniqueName(name: curve.name)
                     curve.name = name
                     drawables.insert(key: name, value: curve)
@@ -68,6 +68,6 @@ struct BézeirCurveConstructor: View {
 }
 
 #Preview {
-    BézeirCurveConstructor()
+    BézierCurveConstructor()
         .environment(DrawableCollection())
 }

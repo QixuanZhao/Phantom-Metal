@@ -54,8 +54,8 @@ class BSplineBasis {
     }
     
     struct KnotSpan {
-        var start: IndexedKnot
-        var end: IndexedKnot
+        var start: IndexedKnot // start knot
+        var end: IndexedKnot // end knot
     }
     
     var knots: [Knot] {
@@ -146,7 +146,7 @@ class BSplineBasis {
         }
     }
     
-    func recreateTexture () {
+    private func recreateTexture () {
         if requireRecreateBasisTexture {
             self.basisTextures = []
             basisTextureDescriptor.arrayLength = order

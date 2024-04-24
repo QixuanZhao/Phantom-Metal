@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct BézeirCurveProperties: View {
-    var curve: BézeirCurve
+struct BézierCurveProperties: View {
+    var curve: BézierCurve
     
     var body: some View {
         VStack {
@@ -19,24 +19,24 @@ struct BézeirCurveProperties: View {
             }
             
             GroupBox {
-                BézeirCurveControlPointList(curve: curve).frame(minHeight: 150)
+                BézierCurveControlPointList(curve: curve).frame(minHeight: 150)
             } label: {
                 HStack {
                     Text("Control Points")
                     Toggle(isOn: .init(get: { curve.showControlPoints },
                                        set: { value in curve.showControlPoints = value })) {
                         Label("Show", systemImage: curve.showControlPoints ? "eye.fill" : "eye.slash.fill")
-                    }.toggleStyle(.button).labelStyle(.iconOnly)
+                    }.toggleStyle(.button).labelStyle(.iconOnly).buttonStyle(.plain)
                 }
             }
         }
     }
     
-    init(curve: BézeirCurve) {
+    init(curve: BézierCurve) {
         self.curve = curve
     }
 }
 
 #Preview {
-    BézeirCurveProperties(curve: BézeirCurve())
+    BézierCurveProperties(curve: BézierCurve())
 }

@@ -23,7 +23,7 @@ class Renderer: NSObject, MTKViewDelegate {
                 Double(backgroundColor.blue),
                 Double(backgroundColor.opacity)
             )
-        } else { MTLClearColorMake(0, 0, 0, 0) }
+        } else { MTLClearColorMake(1, 1, 1, 1) }
     }
     
     private var depthTexture: MTLTexture
@@ -51,8 +51,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var camera: Camera = Camera()
     var controller: FPSController
     
-    var scene: SceneGraph?
-//    var colorPixelFormat: MTLPixelFormat = .rgba16Float
+    weak var scene: SceneGraph?
     
     var light: Light = Light(intensity: 1, roughness: 0.1, ambient: 0, direction: [1, -1, 3])
     
@@ -62,7 +61,7 @@ class Renderer: NSObject, MTKViewDelegate {
                           planesAndframeSize: [ 1, 100, 1, 1 ],
                           pointSizeAndCurvilinearPerspective: SIMD4<Float>(20, 0, 0, 0))
     
-    var semaphore = DispatchSemaphore(value: 3)
+    private var semaphore = DispatchSemaphore(value: 3)
     
     override init () {
         let camera = Camera()
@@ -191,7 +190,7 @@ class Renderer: NSObject, MTKViewDelegate {
         let currentFrameTimestamp = Date.now
         let timeInterval = currentFrameTimestamp.timeIntervalSince(lastFrameTimestamp)
         lastFrameTimestamp = currentFrameTimestamp
-        fps = 1.0 / timeInterval
+//        fps = 1.0 / timeInterval
         
         controller.update(Float(timeInterval))
         
@@ -206,13 +205,18 @@ class Renderer: NSObject, MTKViewDelegate {
         renderPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].clearColor = clearColor
         renderPassDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].clearColor = clearColor
         postprocessPassDescriptor.colorAttachments[ColorAttachment.color.rawValue].clearColor = clearColor
-
-        uniform.view = camera.view
-        uniform.projection = camera.projection
-        uniform.cameraPositionAndFOV = SIMD4<Float>(camera.position, camera.fov * Float.pi / 180)
-        uniform.planesAndframeSize = [camera.near, camera.far, drawableWidth, drawableHeight]
         
-        uniformBuffer?.contents().storeBytes(of: uniform, as: Uniform.self)
+        uniformBuffer?.contents().storeBytes(of: camera.view, toByteOffset: MemoryLayout<Uniform>.offset(of: \.view)!,
+                                             as: simd_float4x4.self)
+        uniformBuffer?.contents().storeBytes(of: camera.projection, toByteOffset: MemoryLayout<Uniform>.offset(of: \.projection)!,
+                                             as: simd_float4x4.self)
+        uniformBuffer?.contents().storeBytes(of: SIMD4<Float>(camera.position, camera.fov * Float.pi / 180),
+                                             toByteOffset: MemoryLayout<Uniform>.offset(of: \.cameraPositionAndFOV)!,
+                                             as: SIMD4<Float>.self)
+        uniformBuffer?.contents().storeBytes(of: [camera.near, camera.far, drawableWidth, drawableHeight],
+                                             toByteOffset: MemoryLayout<Uniform>.offset(of: \.planesAndframeSize)!,
+                                             as: SIMD4<Float>.self)
+        
         lightBuffer?.contents().storeBytes(of: light, as: Light.self)
         
         guard let commandBuffer = system.commandQueue.makeCommandBuffer() else { return }
@@ -239,7 +243,6 @@ class Renderer: NSObject, MTKViewDelegate {
         postprocessPassEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
         Quad.draw(postprocessPassEncoder)
         postprocessPassEncoder.endEncoding()
-        
         
         commandBuffer.present(drawable)
         commandBuffer.addCompletedHandler { [weak self] _ in self?.semaphore.signal() }

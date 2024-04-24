@@ -8,7 +8,7 @@
 import Metal
 
 @Observable
-class BézeirCurve: DrawableBase {
+class BézierCurve: DrawableBase {
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.vertexDescriptor = Vertex.descriptor
@@ -154,7 +154,7 @@ class BézeirCurve: DrawableBase {
          showControlPoints: Bool = false) {
         self.basis = BernsteinBasis(degree: degree)
         self.controlPoints = controlPoints
-        self.controlPointColor = Array(repeating: .one, count: controlPoints.count)
+        self.controlPointColor = Array(repeating: [0, 0, 0, 1], count: controlPoints.count)
         self.showControlPoints = showControlPoints
         super.init()
         super.name = "Bézeir Curve"

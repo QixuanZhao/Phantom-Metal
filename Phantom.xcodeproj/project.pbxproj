@@ -82,10 +82,10 @@
 		D9EE96722B44961C002F8D12 /* bernstein.metal in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96712B44961C002F8D12 /* bernstein.metal */; };
 		D9EE96742B449E7D002F8D12 /* BernsteinBasisReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96732B449E7D002F8D12 /* BernsteinBasisReader.swift */; };
 		D9EE96762B44B240002F8D12 /* BernsteinBasisChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96752B44B240002F8D12 /* BernsteinBasisChart.swift */; };
-		D9EE96782B44B53F002F8D12 /* BézeirCurveConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96772B44B53F002F8D12 /* BézeirCurveConstructor.swift */; };
-		D9EE967A2B44B89F002F8D12 /* BézeirCurveProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96792B44B89F002F8D12 /* BézeirCurveProperties.swift */; };
-		D9EE967C2B44BBF1002F8D12 /* BézeirCurveControlPointList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE967B2B44BBF1002F8D12 /* BézeirCurveControlPointList.swift */; };
-		D9EE96812B44BC7F002F8D12 /* BézeirCurveControlPointItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96802B44BC7F002F8D12 /* BézeirCurveControlPointItem.swift */; };
+		D9EE96782B44B53F002F8D12 /* BézierCurveConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96772B44B53F002F8D12 /* BézierCurveConstructor.swift */; };
+		D9EE967A2B44B89F002F8D12 /* BézierCurveProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96792B44B89F002F8D12 /* BézierCurveProperties.swift */; };
+		D9EE967C2B44BBF1002F8D12 /* BézierCurveControlPointList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE967B2B44BBF1002F8D12 /* BézierCurveControlPointList.swift */; };
+		D9EE96812B44BC7F002F8D12 /* BézierCurveControlPointItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EE96802B44BC7F002F8D12 /* BézierCurveControlPointItem.swift */; };
 		D9F2D8BA2B08C021000726F6 /* FloatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F2D8B92B08C021000726F6 /* FloatPicker.swift */; };
 		D9F2DE912B3AD51C001AF2E3 /* GordonSurfaceConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F2DE902B3AD51C001AF2E3 /* GordonSurfaceConstructor.swift */; };
 		D9F2DE932B3AF76C001AF2E3 /* GordonSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F2DE922B3AF76C001AF2E3 /* GordonSurface.swift */; };
@@ -180,10 +180,10 @@
 		D9EE96712B44961C002F8D12 /* bernstein.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bernstein.metal; sourceTree = "<group>"; };
 		D9EE96732B449E7D002F8D12 /* BernsteinBasisReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BernsteinBasisReader.swift; sourceTree = "<group>"; };
 		D9EE96752B44B240002F8D12 /* BernsteinBasisChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BernsteinBasisChart.swift; sourceTree = "<group>"; };
-		D9EE96772B44B53F002F8D12 /* BézeirCurveConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézeirCurveConstructor.swift"; sourceTree = "<group>"; };
-		D9EE96792B44B89F002F8D12 /* BézeirCurveProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézeirCurveProperties.swift"; sourceTree = "<group>"; };
-		D9EE967B2B44BBF1002F8D12 /* BézeirCurveControlPointList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézeirCurveControlPointList.swift"; sourceTree = "<group>"; };
-		D9EE96802B44BC7F002F8D12 /* BézeirCurveControlPointItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézeirCurveControlPointItem.swift"; sourceTree = "<group>"; };
+		D9EE96772B44B53F002F8D12 /* BézierCurveConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézierCurveConstructor.swift"; sourceTree = "<group>"; };
+		D9EE96792B44B89F002F8D12 /* BézierCurveProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézierCurveProperties.swift"; sourceTree = "<group>"; };
+		D9EE967B2B44BBF1002F8D12 /* BézierCurveControlPointList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézierCurveControlPointList.swift"; sourceTree = "<group>"; };
+		D9EE96802B44BC7F002F8D12 /* BézierCurveControlPointItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BézierCurveControlPointItem.swift"; sourceTree = "<group>"; };
 		D9F2D8B92B08C021000726F6 /* FloatPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatPicker.swift; sourceTree = "<group>"; };
 		D9F2DE902B3AD51C001AF2E3 /* GordonSurfaceConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GordonSurfaceConstructor.swift; sourceTree = "<group>"; };
 		D9F2DE922B3AF76C001AF2E3 /* GordonSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GordonSurface.swift; sourceTree = "<group>"; };
@@ -292,7 +292,6 @@
 		D94FF26C2AD688D60019F211 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				D970BA922B64189E00BF6991 /* Experiment */,
 				D97C4B4C2B1741E300010A96 /* Functional Panels */,
 				D9F2D8B82B08C021000726F6 /* Component */,
 				D938B2FB2B8EDE940004BBFE /* CameraPanel.swift */,
@@ -335,13 +334,6 @@
 			path = Shaders;
 			sourceTree = "<group>";
 		};
-		D970BA922B64189E00BF6991 /* Experiment */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Experiment;
-			sourceTree = "<group>";
-		};
 		D97C4B3C2B0F337D00010A96 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
@@ -375,7 +367,7 @@
 		D97C4B4C2B1741E300010A96 /* Functional Panels */ = {
 			isa = PBXGroup;
 			children = (
-				D9FAABB02B259D270054DD3D /* Component */,
+				D9FAABB02B259D270054DD3D /* Functional Pieces */,
 				D97C4B4D2B17420200010A96 /* DrawableTable.swift */,
 				D9974F512B1DD1DC00E5D5BD /* MaterialList.swift */,
 				D941F33E2B2ADAAE0037E241 /* PropertyPanel.swift */,
@@ -450,15 +442,15 @@
 			path = "B-Spline Curve";
 			sourceTree = "<group>";
 		};
-		D9EE967E2B44BC42002F8D12 /* Bézeir Curve */ = {
+		D9EE967E2B44BC42002F8D12 /* Bézier Curve */ = {
 			isa = PBXGroup;
 			children = (
-				D9EE96772B44B53F002F8D12 /* BézeirCurveConstructor.swift */,
-				D9EE96792B44B89F002F8D12 /* BézeirCurveProperties.swift */,
-				D9EE967B2B44BBF1002F8D12 /* BézeirCurveControlPointList.swift */,
-				D9EE96802B44BC7F002F8D12 /* BézeirCurveControlPointItem.swift */,
+				D9EE96772B44B53F002F8D12 /* BézierCurveConstructor.swift */,
+				D9EE96792B44B89F002F8D12 /* BézierCurveProperties.swift */,
+				D9EE967B2B44BBF1002F8D12 /* BézierCurveControlPointList.swift */,
+				D9EE96802B44BC7F002F8D12 /* BézierCurveControlPointItem.swift */,
 			);
-			name = "Bézeir Curve";
+			name = "Bézier Curve";
 			path = "Bézeir Curve";
 			sourceTree = "<group>";
 		};
@@ -503,7 +495,7 @@
 			path = "Parametric Geometry";
 			sourceTree = "<group>";
 		};
-		D9FAABB02B259D270054DD3D /* Component */ = {
+		D9FAABB02B259D270054DD3D /* Functional Pieces */ = {
 			isa = PBXGroup;
 			children = (
 				D9FAABB12B25A6170054DD3D /* ModelLoader.swift */,
@@ -512,11 +504,11 @@
 				D97852402B77CB5B00233932 /* BSplineBasisComputeGraph.swift */,
 				D941F3442B2AE7DC0037E241 /* BSplineBasisChart.swift */,
 				D9A25CEB2B47508700BC36CB /* Point Set */,
-				D9EE967E2B44BC42002F8D12 /* Bézeir Curve */,
+				D9EE967E2B44BC42002F8D12 /* Bézier Curve */,
 				D9EE967D2B44BC34002F8D12 /* B-Spline Curve */,
 				D9EE967F2B44BC58002F8D12 /* B-Spline Surface */,
 			);
-			path = Component;
+			path = "Functional Pieces";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -595,7 +587,7 @@
 				D93E95E92B905B1B001D5AEA /* SurfaceProjection.swift in Sources */,
 				D93E95ED2B9093A8001D5AEA /* LineSegments.swift in Sources */,
 				D9AFC69A2B1CC74100D963E9 /* complex.metal in Sources */,
-				D9EE96782B44B53F002F8D12 /* BézeirCurveConstructor.swift in Sources */,
+				D9EE96782B44B53F002F8D12 /* BézierCurveConstructor.swift in Sources */,
 				D93E95E62B904C1D001D5AEA /* TableStringItem.swift in Sources */,
 				D9FAABB22B25A6170054DD3D /* ModelLoader.swift in Sources */,
 				D9F2D8BA2B08C021000726F6 /* FloatPicker.swift in Sources */,
@@ -617,7 +609,7 @@
 				D9A012142B09DCD4009E6614 /* ScalarPicker.swift in Sources */,
 				D909979D2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift in Sources */,
 				D9C74D8B2ADD5936006F9E47 /* CameraController.swift in Sources */,
-				D9EE96812B44BC7F002F8D12 /* BézeirCurveControlPointItem.swift in Sources */,
+				D9EE96812B44BC7F002F8D12 /* BézierCurveControlPointItem.swift in Sources */,
 				D99B19682B2DE7AD00CD2A4E /* Tessellator.swift in Sources */,
 				D9AFC6962B1A775800D963E9 /* AssetCollection.swift in Sources */,
 				D9EE966E2B449289002F8D12 /* BézeirCurve.swift in Sources */,
@@ -652,11 +644,11 @@
 				D90997992B303F3A002AB778 /* BSplineSurfaceProperties.swift in Sources */,
 				D93E95EB2B906C4D001D5AEA /* LineSegment.swift in Sources */,
 				D97C4B522B17697A00010A96 /* LineEditor.swift in Sources */,
-				D9EE967C2B44BBF1002F8D12 /* BézeirCurveControlPointList.swift in Sources */,
+				D9EE967C2B44BBF1002F8D12 /* BézierCurveControlPointList.swift in Sources */,
 				D93E95F12B922C95001D5AEA /* BSplineBasisUtilities.swift in Sources */,
 				D94FF2712AD6D2580019F211 /* Renderer.swift in Sources */,
 				D9EE96742B449E7D002F8D12 /* BernsteinBasisReader.swift in Sources */,
-				D9EE967A2B44B89F002F8D12 /* BézeirCurveProperties.swift in Sources */,
+				D9EE967A2B44B89F002F8D12 /* BézierCurveProperties.swift in Sources */,
 				D97C4B492B11E56700010A96 /* SceneNodeView.swift in Sources */,
 				D94FF2742AD805AD0019F211 /* shaders.metal in Sources */,
 				D9FAABAE2B2124DA0054DD3D /* spline.metal in Sources */,

@@ -7,7 +7,11 @@
 
 import Metal
 
-
+struct SpanSample: Identifiable {
+    var id: Int { span.start.lastIndex }
+    var span: BSplineBasis.KnotSpan
+    var samples: [FunctionSample]
+}
 
 @Observable
 class BSplineBasisReader {
@@ -19,20 +23,6 @@ class BSplineBasisReader {
     private(set) var thirdDerivativeSamples: [SpanSample] = []
     
     var updated = false
-    
-    private var currentTextureOrder: Int = 0
-    
-    struct SpanSample: Identifiable {
-        var id: Int { span.start.lastIndex }
-        var span: BSplineBasis.KnotSpan
-        var samples: [FunctionSample]
-    }
-    
-    struct FunctionSample: Identifiable {
-        var id: Int { basisID }
-        var basisID: Int
-        var samples: [(Float, Float)]
-    }
     
     // load data
     func read() {
@@ -96,7 +86,6 @@ class BSplineBasisReader {
     }
     
     init(basis: BSplineBasis? = nil) {
-        print("init reader")
         self.basis = basis
     }
 }

@@ -60,7 +60,7 @@ struct DrawableTable: View {
                 case is Mesh: .mesh
                 case is PointSet: .pointSet
                 case is BSplineCurve: .BSplineCurve
-                case is BézeirCurve: .bézeirCurve
+                case is BézierCurve: .bézeirCurve
                 case is BSplineSurface: .BSplineSurface
                 default: .none
                 }
@@ -80,7 +80,7 @@ struct DrawableTable: View {
             GridRow {
                 ModelLoader()
                 PointSetConstructor()
-                BézeirCurveConstructor()
+                BézierCurveConstructor()
                 BSplineCurveConstructor()
                 BSplineInterpolatedCurveConstructor()
                 BSplineSurfaceConstructor()

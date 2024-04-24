@@ -25,7 +25,7 @@ struct MiscellaneousPanel: View {
             GridRow {
                 Text("Background")
                 ColorPicker("", selection: .init(get: {
-                    Color(cgColor: renderer.backgroundColor?.cgColor ?? .black)
+                    return Color(cgColor: renderer.backgroundColor?.cgColor ?? .white)
                 }, set: {
                     renderer.backgroundColor = $0.resolve(in: environment)
                 }))

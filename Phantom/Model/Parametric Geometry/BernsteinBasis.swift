@@ -26,7 +26,7 @@ class BernsteinBasis {
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.textureType = .type1DArray
         descriptor.arrayLength = 0
-        descriptor.storageMode = .private
+        descriptor.storageMode = .shared
         return descriptor
     }()
     
@@ -59,10 +59,9 @@ class BernsteinBasis {
                 encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
                 encoder.endEncoding()
             }
-            buffer.addCompletedHandler { [weak self] _ in
-                self?.reader.loadData()
-            }
             buffer.commit()
+            buffer.waitUntilCompleted()
+            self.reader.updated = false
         }
     }
     

@@ -89,7 +89,7 @@ struct FloatPicker: View {
                                 lastFrame = thisFrame
                                 
                                 dy = Float(value.translation.height)
-                                self.value = tempValue - dy / Float(scale) * 0.001
+                                self.value = tempValue - dy / Float(scale) * 0.1
                             }
                             .onEnded { _ in
                                 firstDrag = true

@@ -83,10 +83,6 @@ struct ContentView: View {
                     } label: { Label("Misc", systemImage: "gear") }
                     
                     Spacer()
-                    HStack {
-//                        Text(String(format: "%6.2f FPS", renderer.fps)).monospaced()
-                        Text("\(Int(renderer.resolution.width)) x \(Int(renderer.resolution.height))")
-                    }.font(.caption)
                 }.padding()
             }
             ScrollView {

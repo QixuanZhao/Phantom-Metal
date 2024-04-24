@@ -30,6 +30,6 @@ class LineSegment: DrawableBase {
          end: SIMD3<Float>) {
         self.start = start
         self.end = end
-        self.vertices = [Vertex(position: start, color: .one), Vertex(position: end, color: .one)]
+        self.vertices = [Vertex(position: start, color: .one), Vertex(position: end, color: [0, 0, 0, 1])]
     }
 }

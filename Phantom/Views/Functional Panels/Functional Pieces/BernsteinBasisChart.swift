@@ -9,19 +9,14 @@ import SwiftUI
 import Charts
 
 extension BernsteinBasis {
-    var samples: [BernsteinBasisReader.FunctionSample] { reader.samples }
-    var derivativeSamples: [BernsteinBasisReader.FunctionSample] { reader.derivativeSamples }
+    var samples: [FunctionSample] { reader.samples }
+    var derivativeSamples: [FunctionSample] { reader.derivativeSamples }
 }
 
 struct BernsteinBasisChart: View {
     let basis: BernsteinBasis
     
     @State private var showDerivatives = false
-    
-    private var blurRadius: Float {
-        if basis.reader.busy { 10 }
-        else { 0 }
-    }
     
     private var colorStart: Color {
         Color.primary.opacity(0.4)
@@ -50,12 +45,8 @@ struct BernsteinBasisChart: View {
                                 .foregroundStyle(by: .value("ID", functionSample.basisID))
                         }
                     }
-                }.chartLegend(.hidden).blur(radius: CGFloat(blurRadius))
-                .overlay {
-                    if basis.reader.busy {
-                        ProgressView()
-                    }
-                }.chartForegroundStyleScale(range: Gradient(colors: [colorStart,
+                }.chartLegend(.hidden).blur(radius: basis.reader.updated ? 0 : 10)
+                .chartForegroundStyleScale(range: Gradient(colors: [colorStart,
                                                                      colorEnd]))
             } else {
                 Chart {
@@ -66,14 +57,16 @@ struct BernsteinBasisChart: View {
                         }
                     }
                 }.chartLegend(.hidden).chartYScale(domain: [0, 1])
-                .blur(radius: CGFloat(blurRadius))
-                .overlay {
-                    if basis.reader.busy {
-                        ProgressView()
-                    }
-                }.chartForegroundStyleScale(range: Gradient(colors: [colorStart,
+                .blur(radius: basis.reader.updated ? 0 : 10)
+                .chartForegroundStyleScale(range: Gradient(colors: [colorStart,
                                                                      colorEnd]))
             }
+        }.onChange(of: basis.requireRecreateBasisTexture) {
+            if !basis.requireRecreateBasisTexture {
+                basis.reader.read()
+            }
+        }.onAppear {
+            basis.reader.read()
         }
     }
     

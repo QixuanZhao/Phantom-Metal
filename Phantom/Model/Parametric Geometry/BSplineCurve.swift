@@ -147,7 +147,7 @@ class BSplineCurve: DrawableBase {
          showControlPoints: Bool = false) {
         self.basis = basis
         self.controlPoints = controlPoints
-        self.controlPointColor = Array(repeating: .one, count: controlPoints.count)
+        self.controlPointColor = Array(repeating: [0, 0, 0, 1], count: controlPoints.count)
         self.showControlPoints = showControlPoints
         super.init()
         super.name = "B-Spline Curve"

@@ -16,6 +16,8 @@ extension BSplineBasis.Knot: Hashable {
 struct BSplineBasisKnotEditor: View {
     @Binding var basis: BSplineBasis
     
+//    @State private var lowerbound: Float = 0
+//    @State private var upperbound: Float = 1
     @State private var innerKnots: Set<BSplineBasis.Knot>
     @State private var newKnot: Float = 0.5
     @State private var newKnotMultiplicity: Int = 1
@@ -40,13 +42,18 @@ struct BSplineBasisKnotEditor: View {
                     Stepper("", value: $basis.degree, in: 1...16, step: 1)
                 }
             }
+            HStack {
+                TextField("lowerbound", value: $basis.knots.first!.value, format: .number)
+                TextField("upperbound", value: $basis.knots.last!.value, format: .number)
+            }.textFieldStyle(.roundedBorder)
             ScrollView {
                 Table(of: BSplineBasis.Knot.self) {
                     TableColumn("Inner Knot") { knot in
                         if knot.multiplicity > 0 {
                             Text("\(knot.value)")
                         } else {
-                            FloatPicker(value: $newKnot, range: 0...1, fractionLength: 4, step: 1e-4)
+                            TextField("knot value", value: $newKnot, format: .number)
+                                .textFieldStyle(.roundedBorder)
                         }
                     }.width(ideal: 150)
                     TableColumn("Multiplicity") { knot in
@@ -85,7 +92,7 @@ struct BSplineBasisKnotEditor: View {
                             }
                         } else {
                             Button {
-                                if newKnot == 0 || newKnot == 1 { return }
+                                if newKnot == basis.knots.first!.value || newKnot == basis.knots.last!.value { return }
                                 
                                 if let firstIndex = innerKnots.firstIndex(where: { $0.value == newKnot }) {
                                     if innerKnots[firstIndex].multiplicity < basis.degree {
@@ -103,6 +110,7 @@ struct BSplineBasisKnotEditor: View {
                                     Spacer()
                                 }
                             }.buttonStyle(.bordered)
+                                .disabled(newKnot <= basis.knots.first!.value || newKnot >= basis.knots.last!.value)
                         }
                     }.width(40)
                 } rows: {
@@ -118,25 +126,15 @@ struct BSplineBasisKnotEditor: View {
             tempKnots.append(contentsOf: innerKnots.sorted(by: { $0.value < $1.value }))
             tempKnots.append(basis.knots.last!)
             basis.knots = tempKnots
-            performTimestamp = .now + system.debounceInterval
-            
-            Timer.scheduledTimer(withTimeInterval: system.debounceInterval,
-                                 repeats: false) { _ in
-                if Date.now >= performTimestamp {
-                    basis.updateTexture()
-//                    print(" + \(performTimestamp.timeIntervalSinceNow)")
-                }
-            }
         }.onChange(of: basis.degree) {
             basis.knots[0].multiplicity = basis.degree + 1
             basis.knots[basis.knots.count - 1].multiplicity = basis.degree + 1
+        }.onChange(of: basis.knots) {
             performTimestamp = .now + system.debounceInterval
-
             Timer.scheduledTimer(withTimeInterval: system.debounceInterval,
                                  repeats: false) { _ in
                 if Date.now >= performTimestamp {
                     basis.updateTexture()
-//                    print(" - \(performTimestamp.timeIntervalSinceNow)")
                 }
             }
         }
@@ -154,5 +152,5 @@ struct BSplineBasisKnotEditor: View {
                                                          knots: [
                                                             .init(value: 0, multiplicity: 4),
                                                             .init(value: 1, multiplicity: 4)
-                                                         ])))
+                                                         ]))).padding()
 }

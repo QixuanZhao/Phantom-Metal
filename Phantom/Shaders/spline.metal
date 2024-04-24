@@ -334,7 +334,7 @@ void fillVIsoCurveConstraintMatrix(constant BSplineKernelArgument& uArgs [[buffe
     out.globalNormal   = globalNormal.xyz;
     
     const float actualSize = uniform.pointSizeAndCurvilinearPerspective.x;
-    out.pointSize = 0.5 * actualSize / distance;
+    out.pointSize = 0.5 * actualSize / distance + actualSize / 4;
     
     return out;
 }

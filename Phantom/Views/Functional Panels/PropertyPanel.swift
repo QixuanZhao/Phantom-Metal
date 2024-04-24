@@ -43,8 +43,8 @@ struct PropertyPanel: View {
                 if !switching {
                     if let curve = drawable as? BSplineCurve {
                         BSplineCurveProperties(curve: curve)
-                    } else if let curve = drawable as? BézeirCurve {
-                        BézeirCurveProperties(curve: curve)
+                    } else if let curve = drawable as? BézierCurve {
+                        BézierCurveProperties(curve: curve)
                     } else if let surface = drawable as? BSplineSurface {
                         BSplineSurfaceProperties(surface: surface)
                     }

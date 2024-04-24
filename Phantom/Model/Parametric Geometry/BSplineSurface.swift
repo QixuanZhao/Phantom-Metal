@@ -380,6 +380,6 @@ class BSplineSurface: DrawableBase {
         self.init(uBasis: BSplineBasis(degree: degrees.0, knots: uKnots),
                   vBasis: BSplineBasis(degree: degrees.1, knots: vKnots),
                   controlNet: controlNet,
-                  controlPointColor: controlNet.map { $0.map { _ in [1,1,1,1] } })
+                  controlPointColor: controlNet.map { $0.map { _ in [0,0,0,1] } })
     }
 }

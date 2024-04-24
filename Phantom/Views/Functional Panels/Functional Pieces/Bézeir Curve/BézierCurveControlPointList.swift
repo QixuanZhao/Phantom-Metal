@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct BézeirCurveControlPointList: View {
-    var curve: BézeirCurve
+struct BézierCurveControlPointList: View {
+    var curve: BézierCurve
     
     struct ControlPoint: Identifiable {
         var id: Int
@@ -25,7 +25,7 @@ struct BézeirCurveControlPointList: View {
     var body: some View {
         ScrollView (showsIndicators: true) {
             ForEach(controlPoints) { cp in
-                BézeirCurveControlPointItem(curve: curve,
+                BézierCurveControlPointItem(curve: curve,
                                             controlPointIndex: cp.id)
             }
         }
@@ -33,5 +33,5 @@ struct BézeirCurveControlPointList: View {
 }
 
 #Preview {
-    BézeirCurveControlPointList(curve: BézeirCurve())
+    BézierCurveControlPointList(curve: BézierCurve())
 }

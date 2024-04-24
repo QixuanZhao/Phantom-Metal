@@ -8,6 +8,35 @@
 import Foundation
 
 class JSONObjectParser {
+    static func dump(samples: [SpanSample]) -> Data? {
+        let sortedFunctionSamples = samples.flatMap { $0.samples }.sorted { $0.basisID < $1.basisID }
+        
+        var currentBasisId = -1
+        var groupedFunctionSamples: [FunctionSample] = []
+        for fs in sortedFunctionSamples {
+            if currentBasisId != fs.basisID {
+                currentBasisId = fs.basisID
+                groupedFunctionSamples.append(fs)
+            } else {
+                if abs(fs.samples.first!.1 - groupedFunctionSamples.last!.samples.last!.1) > 1e-3 {
+                    groupedFunctionSamples.append(fs)
+                } else {
+                    groupedFunctionSamples[groupedFunctionSamples.count - 1]
+                        .samples.append(contentsOf: fs.samples)
+                }
+            }
+        }
+        
+        let json: [Any] = groupedFunctionSamples.map { sample in
+            [
+                "basisID": sample.basisID,
+                "samples": sample.samples.map { [$0.0, $0.1] }
+            ]
+        }
+        
+        return try? JSONSerialization.data(withJSONObject: json)
+    }
+    
     static func dump(drawable: DrawableBase) -> Data? {
         switch drawable {
         case is BSplineCurve: dump(curve: drawable as! BSplineCurve)

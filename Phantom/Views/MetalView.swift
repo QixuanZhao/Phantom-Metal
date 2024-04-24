@@ -21,7 +21,7 @@ struct MetalView: NSViewRepresentable {
         view.device = system.device
         view.delegate = renderer
         view.colorPixelFormat = .rgba16Float
-        view.colorspace = .init(name: CGColorSpace.extendedLinearDisplayP3)
+        view.colorspace = .init(name: CGColorSpace.displayP3)
         return view
     }
     

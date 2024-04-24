@@ -1,16 +1,16 @@
 //
-//  BSplineCurveControlPointItem.swift
+//  BézierCurveControlPointItem.swift
 //  Phantom
 //
-//  Created by TSAR Weasley on 2023/12/15.
+//  Created by TSAR Weasley on 2024/1/3.
 //
 
 import SwiftUI
 
-struct BSplineCurveControlPointItem: View {
+struct BézierCurveControlPointItem: View {
     @Environment(\.self) private var environment
     
-    var curve: BSplineCurve
+    var curve: BézierCurve
     var controlPointIndex: Int
     
     private let x: Binding<Float>
@@ -40,9 +40,8 @@ struct BSplineCurveControlPointItem: View {
         .popover(isPresented: $showPositionPanel) {
             VStack {
                 HStack {
-                    ColorPicker("Color", 
-                                selection: .init(get: { Color(.displayP3, 
-                                                              red: Double(curve.controlPointColor[controlPointIndex].x),
+                    ColorPicker("Color",
+                                selection: .init(get: { Color(red: Double(curve.controlPointColor[controlPointIndex].x),
                                                               green: Double(curve.controlPointColor[controlPointIndex].y),
                                                               blue: Double(curve.controlPointColor[controlPointIndex].z),
                                                               opacity: Double(curve.controlPointColor[controlPointIndex].w)) },
@@ -77,7 +76,7 @@ struct BSplineCurveControlPointItem: View {
     }
         
     
-    init(curve: BSplineCurve,
+    init(curve: BézierCurve,
          controlPointIndex: Int) {
         self.curve = curve
         self.controlPointIndex = controlPointIndex
@@ -94,6 +93,5 @@ struct BSplineCurveControlPointItem: View {
 }
 
 #Preview {
-    BSplineCurveControlPointItem(curve: BSplineCurve(),
-                                 controlPointIndex: 1)
+    BézierCurveControlPointItem(curve: BézierCurve(), controlPointIndex: 0)
 }
