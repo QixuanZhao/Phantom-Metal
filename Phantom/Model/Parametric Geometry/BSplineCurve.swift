@@ -33,7 +33,7 @@ class BSplineCurve: DrawableBase {
         }
     }
     
-    private(set) var controlPointColor: [SIMD4<Float>] {
+    var controlPointColor: [SIMD4<Float>] {
         didSet {
             requireUpdate = true
         }

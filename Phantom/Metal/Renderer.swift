@@ -216,6 +216,9 @@ class Renderer: NSObject, MTKViewDelegate {
         uniformBuffer?.contents().storeBytes(of: [camera.near, camera.far, drawableWidth, drawableHeight],
                                              toByteOffset: MemoryLayout<Uniform>.offset(of: \.planesAndframeSize)!,
                                              as: SIMD4<Float>.self)
+        uniformBuffer?.contents().storeBytes(of: uniform.pointSizeAndCurvilinearPerspective,
+                                             toByteOffset: MemoryLayout<Uniform>.offset(of: \.pointSizeAndCurvilinearPerspective)!,
+                                             as: SIMD4<Float>.self)
         
         lightBuffer?.contents().storeBytes(of: light, as: Light.self)
         

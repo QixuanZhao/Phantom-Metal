@@ -41,6 +41,30 @@ struct SceneNodeView: View {
     
     @ViewBuilder
     var nodeProperties: some View {
+        Button {
+            if let drawable = node.drawable {
+                switch drawable {
+                case is BSplineCurve:
+                    let curve = drawable as! BSplineCurve
+                    
+                    let controlPoints = curve.controlPoints.map { node.model * $0 }
+                    let materialized = BSplineCurve(knots: curve.basis.knots,
+                                                    controlPoints: controlPoints, 
+                                                    degree: curve.basis.degree,
+                                                    showControlPoints: curve.showControlPoints)
+                    materialized.name = drawables.uniqueName(name: "M \(curve.name)")
+                    drawables.insert(key: materialized.name, value: materialized)
+                    drawableName = materialized.name
+                default:
+                    break
+                }
+            }
+            node.translation = .zero
+            node.scaling = .one
+            rotationAAA = .zero
+        } label: {
+            Label("Materialize", systemImage: "arrow.clockwise")
+        }.disabled(currentDrawable == nil)
         VectorPicker(value: translation,
                      label: "Translation X Y Z"
         )
@@ -70,7 +94,6 @@ struct SceneNodeView: View {
             .foregroundStyle(node.drawable == nil ? Color.primary : Color.accentColor)
         .popover(isPresented: $showDrawableList) {
             VStack {
-//                DrawableList(selected: $drawableName)
                 DrawableNameList(selected: $drawableName)
                 MaterialNameList(selected: $materialName)
             }.controlSize(.small).frame(height: 300)
@@ -121,7 +144,6 @@ struct SceneNodeView: View {
                         .font(.footnote)
                 } else {
                     LineEditor(text: nodeName, editable: .constant(true))
-                    //                    .onChange(of: nodeName) { node.name = nodeName }
                         .textFieldStyle(.roundedBorder)
                 }
                 Spacer()

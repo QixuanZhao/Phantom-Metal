@@ -114,14 +114,15 @@ extension BSplineSurface {
         var uCandidates: [Float] = []
         var vCandidates: [Float] = []
         
-        let uDomain = uBasis.knots.last!.value - uBasis.knots.first!.value
-        let vDomain = vBasis.knots.last!.value - vBasis.knots.first!.value
+//        let uDomain = uBasis.knots.last!.value - uBasis.knots.first!.value
+//        let vDomain = vBasis.knots.last!.value - vBasis.knots.first!.value
         
         for uSpan in uBasis.knotSpans {
             let start = uSpan.start.knot.value
             let end = uSpan.end.knot.value
             let length = end - start
-            let n = max(Int(length / uDomain * 50), 1)
+//            let n = max(Int(length / uDomain * 50), 1)
+            let n = (uBasis.degree + 2) * 2
             let step = length / Float(n)
             for k in 0..<n {
                 let value = step * Float(k) + start
@@ -134,7 +135,8 @@ extension BSplineSurface {
             let start = vSpan.start.knot.value
             let end = vSpan.end.knot.value
             let length = end - start
-            let n = max(Int(length / vDomain * 50), 1)
+//            let n = max(Int(length / vDomain * 50), 1)
+            let n = (vBasis.degree + 2) * 2
             let step = length / Float(n)
             for k in 0..<n {
                 let value = step * Float(k) + start
@@ -173,7 +175,7 @@ extension BSplineSurface {
         let intervalU = spanU ?? (self.uBasis.knots.first!.value ... self.uBasis.knots.last!.value)
         let intervalV = spanV ?? (self.vBasis.knots.first!.value ... self.vBasis.knots.last!.value)
         
-        for iteration in 0..<maxIteration {
+        for _ in 0..<maxIteration {
             let offset = self.point(at: uvi)! - point
             
             let potentialTangentU = self.points(at: uvi, derivativeOrder: (1, 0)).flatMap { $0 }
@@ -221,15 +223,15 @@ extension BSplineSurface {
             uvi = clamp(uvi, min: [intervalU.lowerBound, intervalV.lowerBound], max: [intervalU.upperBound, intervalV.upperBound])
             
 //            if length(tangentU * (uvi.x - uvj.x) + tangentV * (uvi.y - uvj.y)) < e1 || pointCoincident || cosineIsZero {
-//                return uvi
+//                return uvi 73
 //            }
             
-            if length(tangentU * deltaU + tangentV * deltaV) < e1 {
+            if length(tangentU * (uvi.x - uvj.x) + tangentV * (uvi.y - uvj.y)) < e1 {
                 return uvi
             }
             
             if pointCoincident || cosineIsZero {
-                return uvj
+                return uvi
             }
         }
         

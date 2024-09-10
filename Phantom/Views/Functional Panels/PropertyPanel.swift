@@ -47,6 +47,10 @@ struct PropertyPanel: View {
                         BézierCurveProperties(curve: curve)
                     } else if let surface = drawable as? BSplineSurface {
                         BSplineSurfaceProperties(surface: surface)
+                    } else if let pointSet = drawable as? PointSet {
+                        PointSetProperties(pointSet: pointSet)
+                    } else if let lineSegments = drawable as? LineSegments {
+                        LineSegmentsProperties(lineSegments: lineSegments)
                     }
                 } else {
                     ContentUnavailableView("Switching", systemImage: "point.bottomleft.forward.to.arrowtriangle.uturn.scurvepath.fill")

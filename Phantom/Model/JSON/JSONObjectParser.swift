@@ -8,6 +8,22 @@
 import Foundation
 
 class JSONObjectParser {
+    static func dump(camera: Camera) -> Data? {
+        let data: [String: Any] = [
+            "position": [ camera.position.x, camera.position.y, camera.position.z ],
+            "pitch": camera.pitch,
+            "yaw": camera.yaw,
+            "roll": camera.roll
+        ]
+        
+        let json: [String: Any] = [
+            "type": "camera",
+            "data": data
+        ]
+        
+        return try? JSONSerialization.data(withJSONObject: json)
+    }
+    
     static func dump(samples: [SpanSample]) -> Data? {
         let sortedFunctionSamples = samples.flatMap { $0.samples }.sorted { $0.basisID < $1.basisID }
         
@@ -37,12 +53,71 @@ class JSONObjectParser {
         return try? JSONSerialization.data(withJSONObject: json)
     }
     
+    // drawable dump function
+    // dispatcher function
     static func dump(drawable: DrawableBase) -> Data? {
         switch drawable {
         case is BSplineCurve: dump(curve: drawable as! BSplineCurve)
         case is BSplineSurface: dump(surface: drawable as! BSplineSurface)
+        case is LineSegments: dump(lineSegments: drawable as! LineSegments)
+        case is PointSet: dump(pointSet: drawable as! PointSet)
         default: nil
         }
+    }
+    
+    static func dump(pointSet: PointSet) -> Data? {
+        let points = pointSet.points
+        
+        let data: [String: Any] = [
+            "points": points.map { [$0.x, $0.y, $0.z] },
+            "color": [pointSet.color.x, pointSet.color.y, pointSet.color.z, pointSet.color.w]
+        ]
+        
+        let jsonObject: [String: Any] = [
+            "type": "point set",
+            "data": data
+        ]
+        
+        return try? JSONSerialization.data(withJSONObject: jsonObject)
+    }
+    
+    static func dump(lineSegments: LineSegments) -> Data? {
+        let segments = lineSegments.segments.map {
+            [ [$0.0.x, $0.0.y, $0.0.z], [$0.1.x, $0.1.y, $0.1.z] ]
+        }
+        
+        let strategy = switch lineSegments.colorBy {
+        case .mono: "mono"
+        case .lengthBinary: "length binary"
+        case .lengthLinear: "length linear"
+        case .lengthLinearTruncated: "length linear truncated"
+        }
+        
+        var color: [String: Any] = [
+            "strategy": strategy,
+            "color1": [ lineSegments.color1.x, lineSegments.color1.y, lineSegments.color1.z, lineSegments.color1.w ],
+            "color2": [ lineSegments.color2.x, lineSegments.color2.y, lineSegments.color2.z, lineSegments.color2.w ]
+        ]
+        
+        switch lineSegments.colorBy {
+        case .lengthBinary(let standard):
+            color["standard"] = standard
+        case .lengthLinearTruncated(let standard):
+            color["standard"] = standard
+        default: break
+        }
+        
+        let data: [String: Any] = [
+            "segments": segments,
+            "color": color
+        ]
+        
+        let jsonObject: [String: Any] = [
+            "type": "line segments",
+            "data": data
+        ]
+        
+        return try? JSONSerialization.data(withJSONObject: jsonObject)
     }
     
     static func dump(surface: BSplineSurface) -> Data? {
@@ -114,7 +189,7 @@ class JSONObjectParser {
         return try? JSONSerialization.data(withJSONObject: jsonObject)
     }
     
-    static func parse(_ url: URL) -> DrawableBase? {
+    static func parse(cameraURL url: URL) -> Camera? {
         guard let data = try? Data(contentsOf: url) else {
             print("cannot read data from \(url)")
             return nil
@@ -136,40 +211,196 @@ class JSONObjectParser {
             return nil
         }
         return switch type {
-        case "curve":
+        case "camera":
             if let data = data as? [String: Any] {
-                parseCurve(jsonObject: data)
-            } else { nil }
-        case "surface":
-            if let data = data as? [String: Any] {
-                parseSurface(jsonObject: data)
+                parse(cameraJson: data)
             } else { nil }
         default: nil
         }
     }
     
-    static func parseSurface(jsonObject: [String: Any]) -> BSplineSurface? {
-        guard let uDegree = jsonObject["uDegree"] as? Int else {
+    static func parse(cameraJson: [String: Any]) -> Camera? {
+        guard let position = cameraJson["position"] as? [Double] else {
+            print("position not found")
+            return nil
+        }
+        
+        guard position.count == 3 else {
+            print("position is not a 3D vector")
+            return nil
+        }
+        
+        guard let pitch = cameraJson["pitch"] as? Double else {
+            print("pitch not found")
+            return nil
+        }
+        
+        guard let yaw = cameraJson["yaw"] as? Double else {
+            print("yaw not found")
+            return nil
+        }
+        
+        let roll = (cameraJson["roll"] as? Double) ?? 0
+        
+        let camera = Camera()
+        camera.position = .init(Float(position[0]), Float(position[1]), Float(position[2]))
+        camera.yaw = Float(yaw)
+        camera.pitch = Float(pitch)
+        camera.roll = Float(roll)
+        
+        return camera
+    }
+    
+    // drawable parse function
+    // dispatcher function
+    static func parse(_ url: URL) -> DrawableBase? {
+        guard let data = try? Data(contentsOf: url) else {
+            print("cannot read data from \(url)")
+            return nil
+        }
+        guard let json = try? JSONSerialization.jsonObject(with: data) else {
+            print("cannot parse file to JSON")
+            return nil
+        }
+        guard let dictionary = json as? [String: Any] else {
+            print("json root is not a dictionary")
+            return nil
+        }
+        guard let type = dictionary["type"] as? String else {
+            print("cannot resolve .type")
+            return nil
+        }
+        guard let data = dictionary["data"] else {
+            print("cannot resolve .data")
+            return nil
+        }
+        return if let data = data as? [String: Any] {
+            switch type {
+            case "curve":
+                parse(curveJson: data)
+            case "surface":
+                parse(surfaceJson: data)
+            case "line segments":
+                parse(lineSegmentsJson: data)
+            case "point set":
+                parse(pointSet: data)
+            default: nil
+            }
+        } else { nil }
+    }
+    
+    static func parse(pointSet: [String: Any]) -> PointSet? {
+        guard !pointSet.isEmpty else {
+            print("dictionary is empty")
+            return nil
+        }
+        
+//        guard let color = pointSet["color"] as? [Double] else {
+//            print("no color found")
+//            return nil
+//        }
+        
+        guard let points = pointSet["points"] as? [Any] else {
+            print("no points")
+            return nil
+        }
+        
+        guard !points.isEmpty else { return nil }
+        
+        let psPoints = points.map { point in
+            let p = point as! [Double]
+            let x = Float(p[0])
+            let y = Float(p[1])
+            let z = Float(p[2])
+            return SIMD3<Float>(x, y, z)
+        }
+        
+        let result = PointSet(points: psPoints)
+        return result
+    }
+    
+    static func parse(lineSegmentsJson: [String: Any]) -> LineSegments? {
+        guard !lineSegmentsJson.isEmpty else {
+            print("dictionary is empty")
+            return nil
+        }
+        
+        do {
+            guard let array = lineSegmentsJson["segments"] as? [Any] else {
+                print("segments not found")
+                return nil
+            }
+            
+            let segments = try array.map { segment in
+                guard let s = segment as? [[Double]] else {
+                    throw PhantomError.unknownError("segment is not [[Double]]")
+                }
+                
+                guard s.count == 2 else {
+                    throw PhantomError.unknownError("segment element count is not 2")
+                }
+                
+                return (SIMD3<Float>(Float(s[0][0]), Float(s[0][1]), Float(s[0][2])),
+                        SIMD3<Float>(Float(s[1][0]), Float(s[1][1]), Float(s[1][2])))
+            }
+            
+            let lineSegments = LineSegments(segments: segments)
+            
+            if let color = lineSegmentsJson["color"] as? [String: Any] {
+                if let strategy = color["strategy"] as? String,
+                   let color1 = color["color1"] as? [Double],
+                   let color2 = color["color2"] as? [Double] {
+                    var s = LineSegments.ColorStrategy.mono
+                    switch strategy {
+                    case "length binary": 
+                        let standard = (color["standard"] as? Double) ?? 0.1
+                        s = LineSegments.ColorStrategy.lengthBinary(standard: Float(standard))
+                    case "length linear":
+                        s = LineSegments.ColorStrategy.lengthLinear
+                    case "length linear truncated":
+                        let standard = (color["standard"] as? Double) ?? 0.1
+                        s = LineSegments.ColorStrategy.lengthLinearTruncated(standard: Float(standard))
+                    default: break
+                    }
+                    
+                    lineSegments.setColorStrategy(s)
+                    
+                    if color1.count == 4 && color2.count == 4 {
+                        lineSegments.setColor(.init(Float(color1[0]), Float(color1[1]), Float(color1[2]), Float(color1[3])),
+                                              .init(Float(color2[0]), Float(color2[1]), Float(color2[2]), Float(color2[3])))
+                    }
+                }
+            }
+            
+            return lineSegments
+        } catch {
+            print(error.localizedDescription)
+            return nil
+        }
+    }
+    
+    static func parse(surfaceJson: [String: Any]) -> BSplineSurface? {
+        guard let uDegree = surfaceJson["uDegree"] as? Int else {
             print("cannot resolve *.uDegree")
             return nil
         }
         
-        guard let vDegree = jsonObject["vDegree"] as? Int else {
+        guard let vDegree = surfaceJson["vDegree"] as? Int else {
             print("cannot resolve *.vDegree")
             return nil
         }
         
-        guard let uKnots = jsonObject["uKnots"] as? [Any] else {
+        guard let uKnots = surfaceJson["uKnots"] as? [Any] else {
             print("cannot resolve *.uKnots")
             return nil
         }
         
-        guard let vKnots = jsonObject["vKnots"] as? [Any] else {
+        guard let vKnots = surfaceJson["vKnots"] as? [Any] else {
             print("cannot resolve *.vKnots")
             return nil
         }
         
-        guard let controlPoints = jsonObject["controlPoints"] as? [Any] else {
+        guard let controlPoints = surfaceJson["controlPoints"] as? [Any] else {
             print("cannot resolve *.controlPoints")
             return nil
         }
@@ -251,17 +482,17 @@ class JSONObjectParser {
         return .init(uKnots: surfaceUKnots, vKnots: surfaceVKnots, degrees: (uDegree, vDegree), controlNet: controlNet)
     }
     
-    static func parseCurve(jsonObject: [String: Any]) -> BSplineCurve? {
-        guard let degree = jsonObject["degree"] as? Int else {
+    static func parse(curveJson: [String: Any]) -> BSplineCurve? {
+        guard let degree = curveJson["degree"] as? Int else {
             print("cannot resolve *.degree")
             return nil
         }
         
-        guard let knots = jsonObject["knots"] as? [Any] else {
+        guard let knots = curveJson["knots"] as? [Any] else {
             print("cannot resolve *.knots")
             return nil
         }
-        guard let controlPoints = jsonObject["controlPoints"] as? [Any] else {
+        guard let controlPoints = curveJson["controlPoints"] as? [Any] else {
             print("cannot resolve *.controlPoints")
             return nil
         }

@@ -30,8 +30,8 @@ class GordonSurface {
         let intersections: [[(SIMD2<Float>, SIMD3<Float>)]]
     }
     
-    private(set) var constructionResult: GordonSurfaceConstructionResult?
-    struct GordonSurfaceConstructionResult {
+    private(set) var constructionResult: ConstructionResult?
+    struct ConstructionResult {
         let uLoft: BSplineSurface
         let vLoft: BSplineSurface
         let tensorProduct: BSplineSurface
@@ -125,7 +125,7 @@ class GordonSurface {
                                                controlNet: compatibleControlNet,
                                                controlPointColor: compatibleControlNet)
             
-            constructionResult = GordonSurfaceConstructionResult(uLoft: uLoft, vLoft: vLoft, 
+            constructionResult = ConstructionResult(uLoft: uLoft, vLoft: vLoft, 
                                                                               tensorProduct: tp,
                                                                               gordonSurface: gordonSurface)
             guideResult.error = []

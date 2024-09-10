@@ -19,6 +19,7 @@ struct LowGordonSurfaceConstructor: View {
     
     @State private var restCurves: [String] = []
     
+    @State private var guideTimes: Int = 1
     @State private var loftedSurface: BSplineSurface? = nil
     @State private var needRegenerateLoftedSurafce = false
     
@@ -139,6 +140,29 @@ struct LowGordonSurfaceConstructor: View {
                                                description: Text("refresh required"))
                     } else {
                         List {
+//                            HStack {
+//                                Button {
+//                                    let clipboard = NSPasteboard.general
+//                                    if let data = try? JSONSerialization.data(withJSONObject: uIsoCurveParameters) {
+//                                        clipboard.setData(data, forType: .string)
+//                                        print("v values copied!")
+//                                    }
+//                                } label: {
+//                                    Label("Copy", systemImage: "doc.on.doc")
+//                                }
+//                                
+//                                Button {
+//                                    let clipboard = NSPasteboard.general
+//                                    if let data = clipboard.data(forType: .string) {
+//                                        if let values = try? JSONSerialization.jsonObject(with: data) as? [Float] {
+//                                            uIsoCurveParameters = values
+////                                            print("v values pasted!")
+//                                        }
+//                                    }
+//                                } label: {
+//                                    Label("Paste", systemImage: "doc.on.clipboard")
+//                                }
+//                            }
                             ForEach(uIsoCurveParameters, id: \.self) { v in
                                 HStack {
                                     Text("\(v)")
@@ -147,7 +171,8 @@ struct LowGordonSurfaceConstructor: View {
                                     }.gaugeStyle(.accessoryLinear)
                                 }
                             }
-                        }.monospacedDigit()
+                        }.copyable([String(data: try! JSONSerialization.data(withJSONObject: uIsoCurveParameters), encoding: .utf8)!])
+                            .monospacedDigit()
                     }
                 } label: {
                     HStack {
@@ -234,9 +259,13 @@ struct LowGordonSurfaceConstructor: View {
                         VStack {
                             Spacer()
                             HStack {
+                                Stepper("times", value: $guideTimes, in: 1...100)
+                                TextField("times", value: $guideTimes, format: .number)
+                            }.textFieldStyle(.roundedBorder)
+                            HStack {
                                 Spacer()
                                 Button {
-                                    let surface = loftedSurface
+//                                    let surface = loftedSurface
                                     let curve = spatialPositionInterpolationResult.curve
                                     let pcurve = parameterInterpolationResult.curve
                                     
@@ -244,15 +273,19 @@ struct LowGordonSurfaceConstructor: View {
                                     let V = uIsoCurveParameters
                                     
                                     do {
-                                        let result = try BSplineApproximator.guide(originalSurface: surface,
-                                                                                   pcurve: pcurve,
-                                                                                   targetCurve: curve,
-                                                                                   sampleCount: sampleCount,
-                                                                                   isoU: U,
-                                                                                   isoV: V)
-                                        result.modifiedSurface.name = drawables.uniqueName(name: "Modified Surface")
-                                        drawables.insert(key: result.modifiedSurface.name,
-                                                         value: result.modifiedSurface)
+                                        var currentSurface = loftedSurface
+                                        for _ in 1...guideTimes {
+                                            let result = try BSplineApproximator.guide(originalSurface: currentSurface,
+                                                                                       pcurve: pcurve,
+                                                                                       targetCurve: curve,
+                                                                                       sampleCount: sampleCount,
+                                                                                       isoU: U,
+                                                                                       isoV: V)
+                                            currentSurface = result.modifiedSurface
+                                            currentSurface.name = drawables.uniqueName(name: "Modified Surface")
+                                            drawables.insert(key: currentSurface.name,
+                                                             value: currentSurface)
+                                        }
                                     } catch {
                                         print(error.localizedDescription)
                                     }
@@ -281,6 +314,10 @@ struct LowGordonSurfaceConstructor: View {
                                 Gauge(value: u, in: 0...1) {
                                     Text("\(u)")
                                 }.gaugeStyle(.accessoryLinear)
+                            }.contextMenu {
+                                Button("Delete") {
+                                    vIsoCurveParameters.remove(at: vIsoCurveParameters.firstIndex(of: u)!)
+                                }
                             }
                         }.monospacedDigit()
                         VStack {
@@ -311,7 +348,18 @@ struct LowGordonSurfaceConstructor: View {
                             }
                             Slider(value: $newParameter, in: 0...1)
                         }
-                    }
+                    }.copyable([String(data: try! JSONSerialization.data(withJSONObject: vIsoCurveParameters), encoding: .utf8)!])
+                        .pasteDestination(for: String.self,
+                            action: { strings in
+                            print(strings.count)
+                            if let string = strings.first {
+                                print(string)
+                                if let json = try? JSONSerialization.jsonObject(with: string.data(using: .utf8)!) as? [Double] {
+                                    let parameters = json.map { Float($0) }
+                                    vIsoCurveParameters = parameters
+                                }
+                            }
+                        })
                 } label: {
                     Text("u")
                 }.frame(minWidth: 200, minHeight: 200)
@@ -729,6 +777,102 @@ struct LowGordonSurfaceConstructor: View {
                                         drawables.insert(key: spatialPositionInterpolationResult.curve.name,
                                                          value: spatialPositionInterpolationResult.curve)
                                     } label: { Label("Export", systemImage: "square.and.arrow.up") }
+                                }
+                            }
+                            
+                            if !needInterpolation,
+                               let parameterInterpolationResult {
+                                HStack {
+                                    Text("P Curve")
+                                    Spacer()
+                                    Button {
+                                        parameterInterpolationResult.curve.name = drawables.uniqueName(name: "Guide P Curve")
+                                        drawables.insert(key: parameterInterpolationResult.curve.name,
+                                                         value: parameterInterpolationResult.curve)
+                                    } label: { Label("Export", systemImage: "square.and.arrow.up") }
+                                }
+                            }
+                            
+                            if !needInterpolation,
+                               let spatialPositionInterpolationResult,
+                               let parameterInterpolationResult {
+                                HStack {
+                                    VStack {
+                                        Button {
+                                            let U = vIsoCurveParameters
+                                            let V = uIsoCurveParameters
+                                            
+                                            var samplePoints: [(SIMD2<Float>, SIMD3<Float>)] = []
+                                            let uSectionCurves = pickedUSections.map { drawables[$0]! as! BSplineCurve }
+                                            for i in 0..<V.count {
+                                                let v = V[i]
+                                                let uSection = uSectionCurves[i]
+                                                for k in 0..<sampleCount {
+                                                    let u = Float(k) / Float(sampleCount - 1)
+                                                    samplePoints.append(([u, v], uSection.point(at: u)!))
+                                                }
+                                            }
+                                            
+                                            let vSectionCurves = generatedVSections
+                                            for i in 0..<U.count {
+                                                let u = U[i]
+                                                let vSection = vSectionCurves[i]
+                                                for k in 0..<sampleCount {
+                                                    let v = Float(k) / Float(sampleCount - 1)
+                                                    samplePoints.append(([u, v], vSection.point(at: v)!))
+                                                }
+                                            }
+                                            
+                                            let guideCurve = spatialPositionInterpolationResult.curve
+                                            let pCurve = parameterInterpolationResult.curve
+                                            
+                                            for k in 0..<sampleCount {
+                                                let t = Float(k) / Float(sampleCount - 1)
+                                                let param = pCurve.point(at: t)!
+                                                let uv: SIMD2<Float> = [param.x, param.y]
+                                                let point = guideCurve.point(at: t)!
+                                                samplePoints.append((uv, point))
+                                            }
+                                            
+                                            let ps1 = PointSet(points: samplePoints.map { $0.1 })
+                                            ps1.name = drawables.uniqueName(name: "Points s")
+                                            drawables.insert(key: ps1.name, value: ps1)
+                                            
+                                            let ps2 = PointSet(points: samplePoints.map { SIMD3<Float>($0.0, 0) })
+                                            ps2.name = drawables.uniqueName(name: "Points uv")
+                                            drawables.insert(key: ps2.name, value: ps2)
+                                            
+                                        } label: {
+                                            Label("Sample All", systemImage: "hand.point.up.left")
+                                        }
+                                        
+                                        Button {
+                                            var samplePoints: [(SIMD2<Float>, SIMD3<Float>)] = []
+                                            
+                                            let guideCurve = spatialPositionInterpolationResult.curve
+                                            let pCurve = parameterInterpolationResult.curve
+                                            
+                                            for k in 0..<sampleCount {
+                                                let t = Float(k) / Float(sampleCount - 1)
+                                                let param = pCurve.point(at: t)!
+                                                let uv: SIMD2<Float> = [param.x, param.y]
+                                                let point = guideCurve.point(at: t)!
+                                                samplePoints.append((uv, point))
+                                            }
+                                            
+                                            let ps1 = PointSet(points: samplePoints.map { $0.1 })
+                                            ps1.name = drawables.uniqueName(name: "Points guide")
+                                            drawables.insert(key: ps1.name, value: ps1)
+                                            
+                                            let ps2 = PointSet(points: samplePoints.map { SIMD3<Float>($0.0, 0) })
+                                            ps2.name = drawables.uniqueName(name: "Points uv guide")
+                                            drawables.insert(key: ps2.name, value: ps2)
+                                            
+                                        } label: {
+                                            Label("Sample Guide", systemImage: "hand.point.up.left")
+                                        }
+                                    }
+                                    TextField("Count", value: $sampleCount, format: .number)
                                 }
                             }
                             

@@ -93,6 +93,7 @@ struct ContentView: View {
         }
     }
     
+//    @available(macOS 15.0, *)
     @ViewBuilder
     var rightColumn: some View {
         TabView {

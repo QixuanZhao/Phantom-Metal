@@ -23,7 +23,7 @@ struct LightPanel: View {
                 Text("Ambient")
                 Slider(value: .init(get: { renderer.light.ambient },
                                     set: { renderer.light.ambient = $0 }),
-                       in: 0...0.1)
+                       in: 0...1)
             }
         }
     }

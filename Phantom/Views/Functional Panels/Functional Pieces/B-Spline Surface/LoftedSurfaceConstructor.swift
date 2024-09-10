@@ -20,6 +20,8 @@ struct LoftedSurfaceConstructor: View {
     @State private var selectedGuideName: String? = nil
     @State private var selectedCurveName: String? = nil
     
+    @State private var guideTimes: Int = 5
+    
     var sections: [TableStringItem] {
         pickedSections.map { TableStringItem(name: $0) }
     }
@@ -38,6 +40,11 @@ struct LoftedSurfaceConstructor: View {
     }
     
     @State private var blendParameter: BSplineInterpolator.BasisParameter = .u
+    @State private var exportsError: Bool = true
+    @State private var perCurveSampleCount: Int = 50
+    @State private var shiftingParameter: Bool = true
+    
+    @State private var knotDensity: Int = 1
     
     var body: some View {
         Button {
@@ -84,8 +91,32 @@ struct LoftedSurfaceConstructor: View {
                                 Table(guides, selection: $selectedGuideName) {
                                     TableColumn("Name") { Text($0.name) }
                                 }.frame(minHeight: 100).tableColumnHeaders(.hidden)
+                                HStack {
+                                    Toggle("Error", isOn: $exportsError)
+                                    Spacer()
+                                    Stepper("PCSC \(perCurveSampleCount)", 
+                                            value: $perCurveSampleCount,
+                                            in: 50...500,
+                                            step: 50)
+                                }
+                                HStack {
+                                    Toggle("Shift Parameters", isOn: $shiftingParameter)
+                                    Spacer()
+                                }
+                                Picker("Knot Density", selection: $knotDensity) {
+                                    Text("x1").tag(1)
+                                    Text("x2").tag(2)
+                                    Text("x3").tag(3)
+                                }
                             } label: {
-                                Text("Guides")
+                                HStack {
+                                    Text("Guides")
+                                    Spacer()
+                                    Stepper("Times \(guideTimes)", value: $guideTimes, in: 1...1000)
+                                    Stepper("", value: $guideTimes, in: 1...1000, step: 10).labelsHidden()
+                                    Stepper("", value: $guideTimes, in: 1...1000, step: 100).labelsHidden()
+                                }.disabled(pickedGuides.isEmpty)
+                                    .foregroundStyle(pickedGuides.isEmpty ? .secondary : .primary)
                             }.frame(minWidth: 200)
                             
                             VStack {
@@ -137,19 +168,64 @@ struct LoftedSurfaceConstructor: View {
                             surface.name = drawables.uniqueName(name: "Lofted Surface")
                             drawables.insert(key: surface.name, value: surface)
                             
-                            let guideCurves = pickedGuides.map { drawables[$0]! as! BSplineCurve }
-                            for k in 0..<5 {
-                                let projectionResult = surface.project(guideCurves)
+                            if !pickedGuides.isEmpty {
+                                let guideCurves = pickedGuides.map { drawables[$0]! as! BSplineCurve }
+                                for k in 0..<guideTimes {
+                                    let startValueCandidates = surface.generateStartValueCandidates()
+                                    let projectionResult = surface.project(guideCurves,
+                                                                           perCurveSampleCount: perCurveSampleCount,
+                                                                           parameterShift: shiftingParameter ? Float(k) / Float(guideTimes) : 0,
+                                                                           startValueCandidates: startValueCandidates)
+                                    
+                                    if exportsError {
+                                        let error = LineSegments(segments: projectionResult.map { ($0.point, $0.projectedPoint) })
+                                        error.name = drawables.uniqueName(name: "E (\(k))")
+                                        error.setColorStrategy(.lengthBinary(standard: 0.1))
+                                        error.setColor([1, 0, 0, 1], [0, 1, 0, 1])
+                                        drawables.insert(key: error.name, value: error)
+                                        
+                                        let denseSamples = surface.project(guideCurves,
+                                                                           perCurveSampleCount: 1000,
+                                                                           startValueCandidates: startValueCandidates)
+                                        let generalizationError = LineSegments(segments: denseSamples.map { ($0.point, $0.projectedPoint) })
+                                        generalizationError.name = drawables.uniqueName(name: "GE (\(k))")
+                                        generalizationError.setColorStrategy(.lengthBinary(standard: 0.1))
+                                        generalizationError.setColor([1, 0, 0, 1], [0, 1, 0, 1])
+                                        drawables.insert(key: generalizationError.name, value: generalizationError)
+                                    }
+                                    
+                                    let guidanceResult = try BSplineApproximator.guide(originalSurface: surface,
+                                                                                       samples: projectionResult.map { ($0.parameters, $0.point) },
+                                                                                       isoU: blendParameter == .v ? [surface.uBasis.knots.first!.value, surface.uBasis.knots.last!.value] : loftResult.blendParameters,
+                                                                                       isoV: blendParameter == .v ? loftResult.blendParameters : [surface.vBasis.knots.first!.value, surface.vBasis.knots.last!.value],
+                                                                                       knotDensityFactor: knotDensity)
+                                    
+                                    surface = guidanceResult.modifiedSurface
+                                    
+                                    surface.name = drawables.uniqueName(name: "Guided Surface (\(k + 1))")
+                                    drawables.insert(key: surface.name, value: surface)
+                                }
                                 
-                                let guidanceResult = try BSplineApproximator.guide(originalSurface: surface,
-                                                                                   samples: projectionResult.map { ($0.parameters, $0.point) },
-                                                                                   isoU: blendParameter == .v ? [surface.uBasis.knots.first!.value, surface.uBasis.knots.last!.value] : loftResult.blendParameters,
-                                                                                   isoV: blendParameter == .v ? loftResult.blendParameters : [surface.vBasis.knots.first!.value, surface.vBasis.knots.last!.value])
-                                
-                                surface = guidanceResult.modifiedSurface
-                                
-                                surface.name = drawables.uniqueName(name: "Guided Surface (\(k))")
-                                drawables.insert(key: surface.name, value: surface)
+                                if exportsError {
+                                    let startValueCandidates = surface.generateStartValueCandidates()
+                                    let projectionResult = surface.project(guideCurves,
+                                                                           perCurveSampleCount: perCurveSampleCount,
+                                                                           startValueCandidates: startValueCandidates)
+                                    let error = LineSegments(segments: projectionResult.map { ($0.point, $0.projectedPoint) })
+                                    error.name = drawables.uniqueName(name: "E (\(guideTimes))")
+                                    error.setColorStrategy(.lengthBinary(standard: 0.1))
+                                    error.setColor([1, 0, 0, 1], [0, 1, 0, 1])
+                                    drawables.insert(key: error.name, value: error)
+                                    
+                                    let denseSamples = surface.project(guideCurves, 
+                                                                       perCurveSampleCount: 1000,
+                                                                       startValueCandidates: startValueCandidates)
+                                    let generalizationError = LineSegments(segments: denseSamples.map { ($0.point, $0.projectedPoint) })
+                                    generalizationError.name = drawables.uniqueName(name: "GE (\(guideTimes))")
+                                    generalizationError.setColorStrategy(.lengthBinary(standard: 0.1))
+                                    generalizationError.setColor([1, 0, 0, 1], [0, 1, 0, 1])
+                                    drawables.insert(key: generalizationError.name, value: generalizationError)
+                                }
                             }
                         } catch { print(error.localizedDescription) }
                     } label: {

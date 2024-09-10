@@ -10,10 +10,21 @@ import Metal
 class PointSet: DrawableBase {
     private(set) var points: [SIMD3<Float>]
     
+    var color: SIMD4<Float> {
+        vertices.first!.color
+    }
+    
     private var vertices: [Vertex]
     private lazy var vertexBuffer: MTLBuffer? = {
         system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
     }()
+    
+    func setColor(_ color: SIMD4<Float>) {
+        for i in 0..<vertices.count {
+            vertices[i].color = color
+        }
+        vertexBuffer = system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
+    }
     
     override func draw(_ encoder: MTLRenderCommandEncoder,
                        instanceCount: Int = 1,

@@ -116,13 +116,6 @@ struct Material {
     var extinctionCoefficentsRoughnessV: SIMD4<Float>;
 };
 
-//metal correspondance
-//struct Material {
-//    float4 albedoSpecular;
-//    float4 refractiveIndicesRoughnessU;
-//    float4 extinctionCoefficentsRoughnessV;
-//};
-
 enum BufferPosition: Int {
     case vertex = 0, uniform, model, light, material
 }

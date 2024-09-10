@@ -10,6 +10,7 @@ import SwiftUI
 struct BSplineCurveProperties: View {
     var curve: BSplineCurve
     
+    @Environment(\.self) private var environment
     @Environment(DrawableCollection.self) private var drawables
     
     @State private var showControlPoints: Bool = true
@@ -25,6 +26,8 @@ struct BSplineCurveProperties: View {
     @State private var selectedCurveNameList: Set<String> = []
     
     @State private var matchEnd = false
+    
+    @State private var curveColor: Color = .black
     
     var curveNameList: [TableStringItem] {
         drawables.keys.filter {
@@ -83,6 +86,8 @@ struct BSplineCurveProperties: View {
                                                                                                                         (domainMax, selectedCurve.point(at: domainMax)!)] : [],
                                                                                      e1: distanceTolerance,
                                                                                      e2: cosineTolerance)
+                                print(projectionResult.0)
+                                print(projectionResult.1)
                                 lineSegments.append((curve.point(at: projectionResult.0)!, selectedCurve.point(at: projectionResult.1)!))
                             }
                             
@@ -151,6 +156,14 @@ struct BSplineCurveProperties: View {
             }
             
             GroupBox {
+                ColorPicker(selection: $curveColor, supportsOpacity: false) {
+                    Text("Whole Curve Color")
+                }.onChange(of: curveColor) {
+                    curve.controlPointColor = curve.controlPointColor.map { _ in
+                        let rc = curveColor.resolve(in: environment)
+                        return SIMD4<Float>(rc.red, rc.green, rc.blue, rc.opacity)
+                    }
+                }
                 BSplineCurveControlPointList(curve: curve).frame(minHeight: 200)
                     .controlSize(.small)
             } label: {

@@ -17,7 +17,7 @@ class DrawableBase: Drawable, Equatable {
     
     var name: String = ""
     func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) { }
-    
+
 //    var boundingBox: AxisAlignedBoundingBox = .init(diagonalVertices: (.zero, .zero))
 //    func updateBoundingBox() {  }
 }
@@ -54,7 +54,7 @@ class Mesh: DrawableBase {
             encoder.setRenderPipelineState(Self.geometryPassState)
             encoder.setVertexBuffer(meshBuffer.buffer, offset: meshBuffer.offset, index: BufferPosition.vertex.rawValue)
             for submesh in metalKitMesh.submeshes {
-                encoder.drawIndexedPrimitives(type: .triangle, 
+                encoder.drawIndexedPrimitives(type: .triangle,
                                               indexCount: submesh.indexCount,
                                               indexType: submesh.indexType,
                                               indexBuffer: submesh.indexBuffer.buffer, 

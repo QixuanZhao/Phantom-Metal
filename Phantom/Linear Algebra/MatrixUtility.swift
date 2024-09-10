@@ -153,14 +153,6 @@ class MatrixUtility {
         commandBuffer.waitUntilCompleted()
         
         return statusBuffer.contents().load(as: MPSMatrixDecompositionStatus.self)
-//        switch status {
-//        case .failure: print("decomp failed")
-//        case .nonPositiveDefinite: print("non positive definite")
-//        case .singular: print("singular")
-//        case .success: print("decomp success")
-//        @unknown default:
-//            print("unknown status")
-//        }
     }
     
     static func solve(spdMatrix matrix: MPSMatrix, 

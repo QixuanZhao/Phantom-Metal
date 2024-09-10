@@ -19,7 +19,7 @@ struct MiscellaneousPanel: View {
                 Text("Point Size")
                 Slider(value: .init(get: { renderer.uniform.pointSizeAndCurvilinearPerspective.x },
                                     set: { renderer.uniform.pointSizeAndCurvilinearPerspective.x = $0 }), 
-                       in: 10...50)
+                       in: 1...50)
             }
             
             GridRow {

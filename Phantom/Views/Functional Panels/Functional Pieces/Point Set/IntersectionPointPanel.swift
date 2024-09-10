@@ -54,6 +54,7 @@ struct IntersectionPointPanel: View {
                                                                                  e1: tolerance)
                             let p1 = curve1.point(at: projectionResult.0)!
                             let p2 = curve2.point(at: projectionResult.1)!
+                            results.append((p1, p2))
                         }
                     }
                     if !results.isEmpty {

@@ -29,6 +29,7 @@ struct GordonSurfaceConstructor: View {
     @State private var isoPoints: [[SIMD3<Float>]] = []
     
     @State private var gordonSurface: GordonSurface? = nil
+    @State private var strictMode: Bool = false
     
     var uSections: [TableStringItem] {
         pickedUSections.map { TableStringItem(name: $0) }
@@ -48,6 +49,13 @@ struct GordonSurfaceConstructor: View {
     
     @ViewBuilder
     var gordonPanel: some View {
+        HStack {
+            Toggle(isOn: $strictMode) {
+                Label("Strict Mode", systemImage: "crown.fill")
+            }
+            Spacer()
+        }.controlSize(.small)
+        
         HStack {
             VStack (alignment: .trailing) {
                 HStack {

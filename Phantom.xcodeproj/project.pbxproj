@@ -15,6 +15,9 @@
 		D909979D2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D909979C2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift */; };
 		D90997A02B30B3E5002AB778 /* JSONObjectParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D909979F2B30B3E5002AB778 /* JSONObjectParser.swift */; };
 		D90CCE262B71FA58006CA159 /* MatrixUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90CCE252B71FA58006CA159 /* MatrixUtility.swift */; };
+		D911CB6D2BFC0B7800D119DD /* GuidedSurfaceConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D911CB6C2BFC0B7800D119DD /* GuidedSurfaceConstructor.swift */; };
+		D91FF4372BDEFD9800704225 /* PointSetProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91FF4362BDEFD9800704225 /* PointSetProperties.swift */; };
+		D91FF43A2BE04E5B00704225 /* LineSegmentsProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91FF4392BE04E5B00704225 /* LineSegmentsProperties.swift */; };
 		D920A6C22B3A897E0058D5E5 /* ModelFileDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D920A6C12B3A897E0058D5E5 /* ModelFileDocument.swift */; };
 		D9338BF12B477C3A002A3FFE /* PointSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9338BF02B477C3A002A3FFE /* PointSet.swift */; };
 		D938B2FC2B8EDE940004BBFE /* CameraPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D938B2FB2B8EDE940004BBFE /* CameraPanel.swift */; };
@@ -24,7 +27,6 @@
 		D93E95E32B904809001D5AEA /* PlainPointSetPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95E22B904809001D5AEA /* PlainPointSetPanel.swift */; };
 		D93E95E62B904C1D001D5AEA /* TableStringItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95E52B904C1D001D5AEA /* TableStringItem.swift */; };
 		D93E95E92B905B1B001D5AEA /* SurfaceProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95E82B905B1B001D5AEA /* SurfaceProjection.swift */; };
-		D93E95EB2B906C4D001D5AEA /* LineSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95EA2B906C4D001D5AEA /* LineSegment.swift */; };
 		D93E95ED2B9093A8001D5AEA /* LineSegments.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95EC2B9093A8001D5AEA /* LineSegments.swift */; };
 		D93E95EF2B90E185001D5AEA /* CurveProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95EE2B90E185001D5AEA /* CurveProjection.swift */; };
 		D93E95F12B922C95001D5AEA /* BSplineBasisUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93E95F02B922C95001D5AEA /* BSplineBasisUtilities.swift */; };
@@ -38,6 +40,8 @@
 		D941F3472B2B52830037E241 /* BSplineCurveControlPointList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */; };
 		D941F3492B2C34C00037E241 /* BSplineCurveControlPointItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */; };
 		D941F34B2B2C62BA0037E241 /* BSplineSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F34A2B2C62BA0037E241 /* BSplineSurface.swift */; };
+		D94BDDAA2C844A1200BB3B79 /* CurveSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */; };
+		D94BDDAC2C8470B500BB3B79 /* LSFSurfaceConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94BDDAB2C8470B500BB3B79 /* LSFSurfaceConstructor.swift */; };
 		D94FF25C2AD682C60019F211 /* PhantomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25B2AD682C60019F211 /* PhantomApp.swift */; };
 		D94FF25E2AD682C60019F211 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25D2AD682C60019F211 /* ContentView.swift */; };
 		D94FF2622AD682C70019F211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D94FF2612AD682C70019F211 /* Assets.xcassets */; };
@@ -64,6 +68,7 @@
 		D9974F542B1EA03D00E5D5BD /* MaterialWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9974F532B1EA03D00E5D5BD /* MaterialWrapper.swift */; };
 		D99B19652B2D82D000CD2A4E /* tessellation.metal in Sources */ = {isa = PBXBuildFile; fileRef = D99B19642B2D82D000CD2A4E /* tessellation.metal */; };
 		D99B19682B2DE7AD00CD2A4E /* Tessellator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99B19672B2DE7AD00CD2A4E /* Tessellator.swift */; };
+		D99E7C122C381D8A009B17CF /* PhantomUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E7C112C381D8A009B17CF /* PhantomUnitTests.swift */; };
 		D9A012142B09DCD4009E6614 /* ScalarPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A012132B09DCD4009E6614 /* ScalarPicker.swift */; };
 		D9A012162B09FE84009E6614 /* VectorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A012152B09FE84009E6614 /* VectorPicker.swift */; };
 		D9A012182B0B2692009E6614 /* Axes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A012172B0B2692009E6614 /* Axes.swift */; };
@@ -98,6 +103,16 @@
 		D9FAABB42B25A7000054DD3D /* BSplineCurveConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FAABB32B25A7000054DD3D /* BSplineCurveConstructor.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D99E7C132C381D8A009B17CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D94FF2502AD682C60019F211 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D94FF2572AD682C60019F211;
+			remoteInfo = Phantom;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		D90997922B2EFCBE002AB778 /* BSplineBasisReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineBasisReader.swift; sourceTree = "<group>"; };
 		D90997942B2F30DF002AB778 /* BSplineBasisKnotEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineBasisKnotEditor.swift; sourceTree = "<group>"; };
@@ -107,6 +122,9 @@
 		D909979C2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineSurfaceControlPointItem.swift; sourceTree = "<group>"; };
 		D909979F2B30B3E5002AB778 /* JSONObjectParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONObjectParser.swift; sourceTree = "<group>"; };
 		D90CCE252B71FA58006CA159 /* MatrixUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatrixUtility.swift; sourceTree = "<group>"; };
+		D911CB6C2BFC0B7800D119DD /* GuidedSurfaceConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSurfaceConstructor.swift; sourceTree = "<group>"; };
+		D91FF4362BDEFD9800704225 /* PointSetProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointSetProperties.swift; sourceTree = "<group>"; };
+		D91FF4392BE04E5B00704225 /* LineSegmentsProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineSegmentsProperties.swift; sourceTree = "<group>"; };
 		D920A6C12B3A897E0058D5E5 /* ModelFileDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelFileDocument.swift; sourceTree = "<group>"; };
 		D9338BF02B477C3A002A3FFE /* PointSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointSet.swift; sourceTree = "<group>"; };
 		D938B2FB2B8EDE940004BBFE /* CameraPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPanel.swift; sourceTree = "<group>"; };
@@ -116,7 +134,6 @@
 		D93E95E22B904809001D5AEA /* PlainPointSetPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlainPointSetPanel.swift; sourceTree = "<group>"; };
 		D93E95E52B904C1D001D5AEA /* TableStringItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableStringItem.swift; sourceTree = "<group>"; };
 		D93E95E82B905B1B001D5AEA /* SurfaceProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceProjection.swift; sourceTree = "<group>"; };
-		D93E95EA2B906C4D001D5AEA /* LineSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineSegment.swift; sourceTree = "<group>"; };
 		D93E95EC2B9093A8001D5AEA /* LineSegments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineSegments.swift; sourceTree = "<group>"; };
 		D93E95EE2B90E185001D5AEA /* CurveProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveProjection.swift; sourceTree = "<group>"; };
 		D93E95F02B922C95001D5AEA /* BSplineBasisUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineBasisUtilities.swift; sourceTree = "<group>"; };
@@ -130,6 +147,8 @@
 		D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineCurveControlPointList.swift; sourceTree = "<group>"; };
 		D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineCurveControlPointItem.swift; sourceTree = "<group>"; };
 		D941F34A2B2C62BA0037E241 /* BSplineSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineSurface.swift; sourceTree = "<group>"; };
+		D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveSampler.swift; sourceTree = "<group>"; };
+		D94BDDAB2C8470B500BB3B79 /* LSFSurfaceConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSFSurfaceConstructor.swift; sourceTree = "<group>"; };
 		D94FF2582AD682C60019F211 /* Phantom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Phantom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D94FF25B2AD682C60019F211 /* PhantomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhantomApp.swift; sourceTree = "<group>"; };
 		D94FF25D2AD682C60019F211 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -161,6 +180,8 @@
 		D9974F532B1EA03D00E5D5BD /* MaterialWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialWrapper.swift; sourceTree = "<group>"; };
 		D99B19642B2D82D000CD2A4E /* tessellation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = tessellation.metal; sourceTree = "<group>"; };
 		D99B19672B2DE7AD00CD2A4E /* Tessellator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tessellator.swift; sourceTree = "<group>"; };
+		D99E7C0F2C381D8A009B17CF /* PhantomUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhantomUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D99E7C112C381D8A009B17CF /* PhantomUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhantomUnitTests.swift; sourceTree = "<group>"; };
 		D9A012132B09DCD4009E6614 /* ScalarPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalarPicker.swift; sourceTree = "<group>"; };
 		D9A012152B09FE84009E6614 /* VectorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VectorPicker.swift; sourceTree = "<group>"; };
 		D9A012172B0B2692009E6614 /* Axes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Axes.swift; sourceTree = "<group>"; };
@@ -205,6 +226,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D99E7C0C2C381D8A009B17CF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -223,6 +251,14 @@
 				D90CCE252B71FA58006CA159 /* MatrixUtility.swift */,
 			);
 			path = "Linear Algebra";
+			sourceTree = "<group>";
+		};
+		D91FF4382BE04E4A00704225 /* LineSegments */ = {
+			isa = PBXGroup;
+			children = (
+				D91FF4392BE04E5B00704225 /* LineSegmentsProperties.swift */,
+			);
+			path = LineSegments;
 			sourceTree = "<group>";
 		};
 		D93E95E42B904C05001D5AEA /* UI Model */ = {
@@ -250,6 +286,7 @@
 			isa = PBXGroup;
 			children = (
 				D94FF25A2AD682C60019F211 /* Phantom */,
+				D99E7C102C381D8A009B17CF /* PhantomUnitTests */,
 				D94FF2592AD682C60019F211 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -258,6 +295,7 @@
 			isa = PBXGroup;
 			children = (
 				D94FF2582AD682C60019F211 /* Phantom.app */,
+				D99E7C0F2C381D8A009B17CF /* PhantomUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -354,7 +392,6 @@
 				D9974F532B1EA03D00E5D5BD /* MaterialWrapper.swift */,
 				D9AFC6952B1A775800D963E9 /* AssetCollection.swift */,
 				D9338BF02B477C3A002A3FFE /* PointSet.swift */,
-				D93E95EA2B906C4D001D5AEA /* LineSegment.swift */,
 				D93E95EC2B9093A8001D5AEA /* LineSegments.swift */,
 				D9A012172B0B2692009E6614 /* Axes.swift */,
 				D97C4B532B18FF8C00010A96 /* Quad.swift */,
@@ -401,12 +438,21 @@
 			path = Metric;
 			sourceTree = "<group>";
 		};
+		D99E7C102C381D8A009B17CF /* PhantomUnitTests */ = {
+			isa = PBXGroup;
+			children = (
+				D99E7C112C381D8A009B17CF /* PhantomUnitTests.swift */,
+			);
+			path = PhantomUnitTests;
+			sourceTree = "<group>";
+		};
 		D9A25CEB2B47508700BC36CB /* Point Set */ = {
 			isa = PBXGroup;
 			children = (
 				D9A25CEC2B4750A000BC36CB /* PointSetConstructor.swift */,
 				D93E95E22B904809001D5AEA /* PlainPointSetPanel.swift */,
 				D93E95DE2B904609001D5AEA /* IntersectionPointPanel.swift */,
+				D91FF4362BDEFD9800704225 /* PointSetProperties.swift */,
 			);
 			path = "Point Set";
 			sourceTree = "<group>";
@@ -438,6 +484,7 @@
 				D941F3422B2AE6440037E241 /* BSplineCurveProperties.swift */,
 				D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */,
 				D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */,
+				D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */,
 			);
 			path = "B-Spline Curve";
 			sourceTree = "<group>";
@@ -464,6 +511,8 @@
 				D90997982B303F3A002AB778 /* BSplineSurfaceProperties.swift */,
 				D909979A2B304229002AB778 /* BSplineSurfaceControlPointMatrix.swift */,
 				D909979C2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift */,
+				D911CB6C2BFC0B7800D119DD /* GuidedSurfaceConstructor.swift */,
+				D94BDDAB2C8470B500BB3B79 /* LSFSurfaceConstructor.swift */,
 			);
 			path = "B-Spline Surface";
 			sourceTree = "<group>";
@@ -503,6 +552,7 @@
 				D9EE96752B44B240002F8D12 /* BernsteinBasisChart.swift */,
 				D97852402B77CB5B00233932 /* BSplineBasisComputeGraph.swift */,
 				D941F3442B2AE7DC0037E241 /* BSplineBasisChart.swift */,
+				D91FF4382BE04E4A00704225 /* LineSegments */,
 				D9A25CEB2B47508700BC36CB /* Point Set */,
 				D9EE967E2B44BC42002F8D12 /* Bézier Curve */,
 				D9EE967D2B44BC34002F8D12 /* B-Spline Curve */,
@@ -531,6 +581,24 @@
 			productReference = D94FF2582AD682C60019F211 /* Phantom.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D99E7C0E2C381D8A009B17CF /* PhantomUnitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D99E7C152C381D8A009B17CF /* Build configuration list for PBXNativeTarget "PhantomUnitTests" */;
+			buildPhases = (
+				D99E7C0B2C381D8A009B17CF /* Sources */,
+				D99E7C0C2C381D8A009B17CF /* Frameworks */,
+				D99E7C0D2C381D8A009B17CF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D99E7C142C381D8A009B17CF /* PBXTargetDependency */,
+			);
+			name = PhantomUnitTests;
+			productName = PhantomUnitTests;
+			productReference = D99E7C0F2C381D8A009B17CF /* PhantomUnitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -538,12 +606,16 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1510;
+				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					D94FF2572AD682C60019F211 = {
 						CreatedOnToolsVersion = 15.0;
 						LastSwiftMigration = 1500;
+					};
+					D99E7C0E2C381D8A009B17CF = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = D94FF2572AD682C60019F211;
 					};
 				};
 			};
@@ -561,6 +633,7 @@
 			projectRoot = "";
 			targets = (
 				D94FF2572AD682C60019F211 /* Phantom */,
+				D99E7C0E2C381D8A009B17CF /* PhantomUnitTests */,
 			);
 		};
 /* End PBXProject section */
@@ -572,6 +645,13 @@
 			files = (
 				D94FF2652AD682C70019F211 /* Preview Assets.xcassets in Resources */,
 				D94FF2622AD682C70019F211 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D99E7C0D2C381D8A009B17CF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -588,6 +668,7 @@
 				D93E95ED2B9093A8001D5AEA /* LineSegments.swift in Sources */,
 				D9AFC69A2B1CC74100D963E9 /* complex.metal in Sources */,
 				D9EE96782B44B53F002F8D12 /* BézierCurveConstructor.swift in Sources */,
+				D91FF4372BDEFD9800704225 /* PointSetProperties.swift in Sources */,
 				D93E95E62B904C1D001D5AEA /* TableStringItem.swift in Sources */,
 				D9FAABB22B25A6170054DD3D /* ModelLoader.swift in Sources */,
 				D9F2D8BA2B08C021000726F6 /* FloatPicker.swift in Sources */,
@@ -623,10 +704,13 @@
 				D9EE96722B44961C002F8D12 /* bernstein.metal in Sources */,
 				D9C74D892ADD504A006F9E47 /* Camera.swift in Sources */,
 				D970BA942B65442900BF6991 /* LowGordonSurfaceConstructor.swift in Sources */,
+				D94BDDAA2C844A1200BB3B79 /* CurveSampler.swift in Sources */,
+				D91FF43A2BE04E5B00704225 /* LineSegmentsProperties.swift in Sources */,
 				D9D2EDA42B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift in Sources */,
 				D9A25CEA2B46348400BC36CB /* AxisAlignedBoundingBox.swift in Sources */,
 				D97C4B412B0F533600010A96 /* Drawable.swift in Sources */,
 				D90997972B2F50C9002AB778 /* BSplineSurfaceConstructor.swift in Sources */,
+				D911CB6D2BFC0B7800D119DD /* GuidedSurfaceConstructor.swift in Sources */,
 				D97C4B4E2B17420200010A96 /* DrawableTable.swift in Sources */,
 				D90CCE262B71FA58006CA159 /* MatrixUtility.swift in Sources */,
 				D90997952B2F30DF002AB778 /* BSplineBasisKnotEditor.swift in Sources */,
@@ -642,7 +726,6 @@
 				D941F3452B2AE7DC0037E241 /* BSplineBasisChart.swift in Sources */,
 				D920A6C22B3A897E0058D5E5 /* ModelFileDocument.swift in Sources */,
 				D90997992B303F3A002AB778 /* BSplineSurfaceProperties.swift in Sources */,
-				D93E95EB2B906C4D001D5AEA /* LineSegment.swift in Sources */,
 				D97C4B522B17697A00010A96 /* LineEditor.swift in Sources */,
 				D9EE967C2B44BBF1002F8D12 /* BézierCurveControlPointList.swift in Sources */,
 				D93E95F12B922C95001D5AEA /* BSplineBasisUtilities.swift in Sources */,
@@ -655,6 +738,7 @@
 				D9FAABAA2B20282F0054DD3D /* BSplineCurve.swift in Sources */,
 				D9338BF12B477C3A002A3FFE /* PointSet.swift in Sources */,
 				D90997A02B30B3E5002AB778 /* JSONObjectParser.swift in Sources */,
+				D94BDDAC2C8470B500BB3B79 /* LSFSurfaceConstructor.swift in Sources */,
 				D97C4B472B11D6EE00010A96 /* SceneGraph.swift in Sources */,
 				D941F3472B2B52830037E241 /* BSplineCurveControlPointList.swift in Sources */,
 				D9EE96702B44930C002F8D12 /* BernsteinBasis.swift in Sources */,
@@ -672,7 +756,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D99E7C0B2C381D8A009B17CF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D99E7C122C381D8A009B17CF /* PhantomUnitTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D99E7C142C381D8A009B17CF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D94FF2572AD682C60019F211 /* Phantom */;
+			targetProxy = D99E7C132C381D8A009B17CF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D94FF2672AD682C70019F211 /* Debug */ = {
@@ -804,7 +904,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -814,6 +914,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Phantom;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -839,7 +941,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -849,6 +951,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Phantom;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -863,6 +967,42 @@
 				SWIFT_OBJC_INTEROP_MODE = objc;
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D99E7C162C381D8A009B17CF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRJUG8P7DW;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = TSAR.PhantomUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Phantom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Phantom";
+			};
+			name = Debug;
+		};
+		D99E7C172C381D8A009B17CF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZRJUG8P7DW;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = TSAR.PhantomUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Phantom.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Phantom";
 			};
 			name = Release;
 		};
@@ -883,6 +1023,15 @@
 			buildConfigurations = (
 				D94FF26A2AD682C70019F211 /* Debug */,
 				D94FF26B2AD682C70019F211 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D99E7C152C381D8A009B17CF /* Build configuration list for PBXNativeTarget "PhantomUnitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D99E7C162C381D8A009B17CF /* Debug */,
+				D99E7C172C381D8A009B17CF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -16,18 +16,20 @@ struct ProjectionResult {
 extension BSplineSurface {
     func project(_ curves: [BSplineCurve],
                  perCurveSampleCount: Int = 50,
+                 parameterShift: Float = 0, // 0 ~ 1
                  startValueCandidates: [(SIMD2<Float>, SIMD3<Float>)] = [],
                  e1: Float = 1e-6,
                  e2: Float = 1e-6,
                  maxIteration: Int = 100) -> [ProjectionResult] {
         let candidates = if startValueCandidates.isEmpty { generateStartValueCandidates() } else { startValueCandidates }
         return curves.flatMap { curve in
-            project(curve, sampleCount: perCurveSampleCount, startValueCandidates: candidates, e1: e1, e2: e2, maxIteration: maxIteration)
+            project(curve, sampleCount: perCurveSampleCount, parameterShift: parameterShift, startValueCandidates: candidates, e1: e1, e2: e2, maxIteration: maxIteration)
         }
     }
     
     func project(_ curve: BSplineCurve,
                  sampleCount: Int = 50,
+                 parameterShift: Float = 0, // 0 ~ 1 -> [0, 1/50) (50 for sample count)
                  startValueCandidates: [(SIMD2<Float>, SIMD3<Float>)] = [],
                  e1: Float = 1e-6,
                  e2: Float = 1e-6,
@@ -41,10 +43,12 @@ extension BSplineSurface {
         let length = end - start
         let step = length / Float(count + 1)
         
+        let shift = parameterShift * step
+        
         var result: [ProjectionResult] = []
     
         for k in 1...count {
-            let u = step * Float(k)
+            let u = step * Float(k) + start + shift
             let point = curve.point(at: u)!
             let uv = self.inverse(point,
                                   startValueCandidates: candidates,

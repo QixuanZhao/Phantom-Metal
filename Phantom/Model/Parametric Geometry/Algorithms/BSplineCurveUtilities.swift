@@ -126,7 +126,7 @@ extension BSplineCurve {
     func reversed() -> BSplineCurve {
         let domainMin = self.basis.knots.first!.value
         let domainMax = self.basis.knots.last!.value
-        let domainLength = domainMax - domainMin
+//        let domainLength = domainMax - domainMin
         let knots = self.basis.knots.reversed().map { BSplineBasis.Knot(value: (domainMin + domainMax - $0.value), multiplicity: $0.multiplicity) }
         let controlPoints = self.controlPoints.reversed().map { $0 }
         

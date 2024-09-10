@@ -85,9 +85,11 @@ class BSplineApproximator {
     
     // sample: (parameters, ideal spatial position)
     static func guide(originalSurface surface: BSplineSurface,
-                       samples: [(SIMD2<Float>, SIMD3<Float>)],
-                       isoU: [Float] = [0, 1],
-                       isoV: [Float] = [0, 1]) throws -> GuidanceResult {
+                      samples: [(SIMD2<Float>, SIMD3<Float>)],
+                      isoU: [Float] = [0, 1],
+                      isoV: [Float] = [0, 1],
+                      knotDensityFactor: Int = 1
+    ) throws -> GuidanceResult {
         var innerIsoU = isoU
         var innerIsoV = isoV
         
@@ -97,9 +99,9 @@ class BSplineApproximator {
         innerIsoV.removeLast()
         
         let blendUKnots = BSplineBasis.fillKnots(in: BSplineBasis.averageKnots(for: isoU, withDegree: surface.uBasis.degree),
-                                                 count: isoU.count)
+                                                 count: (isoU.count + 2) * knotDensityFactor - 2)
         let blendVKnots = BSplineBasis.fillKnots(in: BSplineBasis.averageKnots(for: isoV, withDegree: surface.vBasis.degree),
-                                                 count: isoV.count)
+                                                 count: (isoV.count + 2) * knotDensityFactor - 2)
         
         let blendUBasis = BSplineBasis(degree: surface.uBasis.degree, knots: blendUKnots)
         let blendVBasis = BSplineBasis(degree: surface.vBasis.degree, knots: blendVKnots)
@@ -203,17 +205,17 @@ class BSplineApproximator {
                                                           rowBytes: 3 * 4,
                                                           dataType: .float32))
         
-        let capture = false
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
         captureDescriptor.captureObject = system.device
-        if capture {
-            do {
-                try captureManager.startCapture(with: captureDescriptor)
-            } catch {
-                fatalError("error when trying to capture: \(error)")
-            }
+        
+#if false
+        do {
+            try captureManager.startCapture(with: captureDescriptor)
+        } catch {
+            fatalError("error when trying to capture: \(error)")
         }
+#endif
         
         guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
@@ -377,9 +379,9 @@ class BSplineApproximator {
 //            throw PhantomError.unknownError("Fail to solve P")
 //        }
         
-        if capture {
-            captureManager.stopCapture()
-        }
+#if false
+        captureManager.stopCapture()
+#endif
         
         print("Succeed P(\(P.rows), \(P.columns))")
         
@@ -447,5 +449,125 @@ class BSplineApproximator {
         }
         
         return try guide(originalSurface: surface, samples: curveSamples, isoU: isoU, isoV: isoV)
+    }
+    
+    static func approximate(samples: [(SIMD2<Float>, SIMD3<Float>)],
+                            uBasis: BSplineBasis,
+                            vBasis: BSplineBasis) throws -> BSplineSurface {
+        
+        let uControlPointCount = uBasis.multiplicitySum - uBasis.order
+        let vControlPointCount = vBasis.multiplicitySum - vBasis.order
+        
+        let controlPointCount = uControlPointCount * vControlPointCount
+        
+        let captureManager = MTLCaptureManager.shared()
+        let captureDescriptor = MTLCaptureDescriptor()
+        captureDescriptor.captureObject = system.device
+        
+#if false
+        do {
+            try captureManager.startCapture(with: captureDescriptor)
+        } catch {
+            fatalError("error when trying to capture: \(error)")
+        }
+#endif
+        
+        let N = MPSMatrix(device: system.device,
+                          descriptor: MPSMatrixDescriptor(rows: samples.count,
+                                                          columns: controlPointCount,
+                                                          rowBytes: controlPointCount * 4,
+                                                          dataType: .float32))
+        N.data.label = "N matrix"
+        
+        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+            print("Cannot create command buffer")
+            throw MetalError.cannotMakeCommandBuffer
+        }
+        
+        guard let encoder = commandBuffer.makeComputeCommandEncoder() else {
+            print("Cannot create compute command encoder")
+            throw MetalError.cannotMakeComputeCommandEncoder
+        }
+        
+        encoder.setComputePipelineState(Self.surfaceMatrixFillerState)
+        encoder.setBytes([BSplineKernelArgument(degree: Int32(uBasis.degree),
+                                                knotCount: Int32(uBasis.multiplicitySum))],
+                         length: MemoryLayout<BSplineKernelArgument>.size,
+                         index: 0)
+        encoder.setBytes([BSplineKernelArgument(degree: Int32(vBasis.degree),
+                                                knotCount: Int32(vBasis.multiplicitySum))],
+                         length: MemoryLayout<BSplineKernelArgument>.size,
+                         index: 1)
+        encoder.setBuffer(uBasis.knotBuffer, offset: 0, index: 2)
+        encoder.setBuffer(vBasis.knotBuffer, offset: 0, index: 3)
+        encoder.setBytes([Int32(controlPointCount)],
+                         length: MemoryLayout<Int32>.size,
+                         index: 4)
+        encoder.setBuffer(N.data, offset: 0, index: 5)
+        encoder.setBytes(samples.map { $0.0.x }, length: MemoryLayout<Float>.stride * samples.count, index: 6)
+        encoder.setBytes(samples.map { $0.0.y }, length: MemoryLayout<Float>.stride * samples.count, index: 7)
+        encoder.dispatchThreadgroups(MTLSizeMake(samples.count, 1, 1),
+                                     threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+        
+        encoder.endEncoding()
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+        
+        let SData = samples.map { [$0.1.x, $0.1.y, $0.1.z] }.flatMap { $0 }
+        let SBuffer = system.device.makeBuffer(bytes: SData,
+                                               length: SData.count * MemoryLayout<Float>.stride)!
+        SBuffer.label = "S Buffer"
+        let S = MPSMatrix(buffer: SBuffer,
+                          descriptor: MPSMatrixDescriptor(rows: samples.count,
+                                                          columns: 3,
+                                                          rowBytes: 3 * 4,
+                                                          dataType: .float32))
+        
+        guard let NtN = MatrixUtility.multiplicate(N, transposeLhs: true, N,
+                                                   resultMatrixLabel: "NtN",
+                                                   commandBufferLabel: "Multiply Nt & N") else {
+            print("Fail to multiply Nt and N")
+            throw PhantomError.unknownError("Fail to multiply Nt and N")
+        }
+        
+        guard let R = MatrixUtility.multiplicate(N, transposeLhs: true, S,
+                                                 resultMatrixLabel: "NtS",
+                                                 commandBufferLabel: "Multiply Nt & S") else {
+            print("Fail to multiply Nt & S")
+            throw PhantomError.unknownError("Fail to multiply Nt & S")
+        }
+        
+        guard let P = MatrixUtility.solve(spdMatrix: NtN, b: R,
+                                          resultMatrixLabel: "P (Final Result)",
+                                          commandBufferLabel: "Solve P") else {
+            print("Fail to solve P")
+            throw PhantomError.unknownError("Fail to solve P")
+        }
+        
+#if false
+        captureManager.stopCapture()
+#endif
+        
+        let pointer = P.data.contents()
+        var controlNet: [[SIMD4<Float>]] = []
+        var byteOffset: Int = 0
+        for _ in 0..<vControlPointCount {
+            var tempCPS: [SIMD4<Float>] = []
+            for _ in 0..<uControlPointCount {
+                let x = pointer.load(fromByteOffset: byteOffset, as: Float.self)
+                let y = pointer.load(fromByteOffset: byteOffset + 4, as: Float.self)
+                let z = pointer.load(fromByteOffset: byteOffset + 8, as: Float.self)
+                byteOffset = byteOffset + 12
+                tempCPS.append(.init(x: x, y: y, z: z, w: 1))
+            }
+            controlNet.append(tempCPS)
+        }
+        
+        let fittedSurface = BSplineSurface(uKnots: uBasis.knots,
+                                           vKnots: vBasis.knots,
+                                           degrees: (uBasis.degree, vBasis.degree),
+                                           controlNet: controlNet)
+        
+        return fittedSurface
     }
 }

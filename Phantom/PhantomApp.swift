@@ -31,7 +31,7 @@ struct PhantomApp: App {
         
         let aluminum = MaterialWrapper(albedo: [0.91304, 0.91403, 0.91860],
                                        specular: 0.9,
-                                       roughness: [0.2, 0.2],
+                                       roughness: [0.6, 0.6],
                                        refractiveIndices: [1.1963, 0.94484, 0.66436],
                                        extinctionCoefficents: [7.0855, 6.3386, 5.4659])
         let brass = MaterialWrapper(albedo: [0.86736, 0.77761, 0.48982],

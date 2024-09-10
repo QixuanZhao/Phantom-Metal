@@ -19,9 +19,9 @@ struct BSplineSurfaceProperties: View {
     @State private var showChart = false
     @State private var showProjector = false
     
-    @State private var perCurveSampleCount: Float = 100
-    @State private var distanceToleranceMagnitude: Float = 1
-    @State private var angleTolerance: Float = 1 // degrees
+    @State private var perCurveSampleCount: Float = 500
+    @State private var distanceToleranceMagnitude: Float = 6
+    @State private var angleTolerance: Float = 0.001 // degrees
     @State private var selectedCurveNameList: Set<String> = []
     
     @State private var isoU: Float = 0
@@ -86,6 +86,8 @@ struct BSplineSurfaceProperties: View {
                             }
                             
                             let lss = LineSegments(segments: lineSegments)
+                            lss.setColor(.init(1, 0, 0, 1), .init(0, 1, 0, 1))
+                            lss.setColorStrategy(.lengthBinary(standard: 0.1))
                             lss.name = drawables.uniqueName(name: "Projection on \(surface.name)")
                             drawables.insert(key: lss.name, value: lss)
                         } label: {

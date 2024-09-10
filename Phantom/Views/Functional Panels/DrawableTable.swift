@@ -49,6 +49,7 @@ struct DrawableTable: View {
         
         enum `Type`: String {
             case geometry, mesh
+            case lineSegments = "line segments"
             case pointSet = "point set"
             case bézeirCurve = "Bézeir curve"
             case BSplineCurve = "B-spline curve"
@@ -59,6 +60,7 @@ struct DrawableTable: View {
                 case is Geometry: .geometry
                 case is Mesh: .mesh
                 case is PointSet: .pointSet
+                case is LineSegments: .lineSegments
                 case is BSplineCurve: .BSplineCurve
                 case is BézierCurve: .bézeirCurve
                 case is BSplineSurface: .BSplineSurface
@@ -80,13 +82,15 @@ struct DrawableTable: View {
             GridRow {
                 ModelLoader()
                 PointSetConstructor()
-                BézierCurveConstructor()
+//                BézierCurveConstructor()
                 BSplineCurveConstructor()
                 BSplineInterpolatedCurveConstructor()
                 BSplineSurfaceConstructor()
                 LoftedSurfaceConstructor()
                 GordonSurfaceConstructor()
                 LowGordonSurfaceConstructor()
+                GuidedSurfaceConstructor()
+                LSFSurfaceConstructor()
             }
             GridRow {
                 

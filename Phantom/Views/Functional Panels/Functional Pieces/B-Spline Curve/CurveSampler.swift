@@ -8,8 +8,25 @@
 import SwiftUI
 
 struct CurveSampler: View {
+    @Environment(DrawableCollection.self) private var drawables
+    
+    @State private var showPanel = false
+    @State private var curves: [BSplineCurve] = []
+    
+    var panel: some View {
+        HStack {
+            
+        }
+    }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Button {
+            showPanel = true
+        } label: {
+            Label("Curve Sampler", systemImage: "book.pages")
+        }.popover(isPresented: $showPanel) {
+            panel
+        }
     }
 }
 
