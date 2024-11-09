@@ -19,30 +19,16 @@ struct BSplineSurfaceProperties: View {
     @State private var showChart = false
     @State private var showProjector = false
     
-    @State private var perCurveSampleCount: Float = 500
-    @State private var distanceToleranceMagnitude: Float = 6
-    @State private var angleTolerance: Float = 0.001 // degrees
-    @State private var selectedCurveNameList: Set<String> = []
-    
     @State private var isoU: Float = 0
     @State private var isoV: Float = 0
     
     @State private var isocurveU: BSplineCurve? = nil
     @State private var isocurveV: BSplineCurve? = nil
     
-    var curveNameList: [TableStringItem] {
-        drawables.keys.filter {
-            drawables[$0] is BSplineCurve
-        }.map { TableStringItem(name: $0) }
-    }
+    @State private var removingUKnotValue: Float?
+    @State private var removingVKnotValue: Float?
     
-    var distanceTolerance: Float {
-        pow(0.1, distanceToleranceMagnitude)
-    }
-    
-    var cosineTolerance: Float {
-        cos(Float.pi / 2 - Float(Angle(degrees: Double(angleTolerance)).radians))
-    }
+    @State private var showControlPointMatrix: Bool = true
     
     var body: some View {
         VStack {
@@ -50,55 +36,18 @@ struct BSplineSurfaceProperties: View {
                 Button {
                     showProjector = true
                 } label: {
-                    Text("Project/Inverse Curve(s)")
+                    Text("Project/Inverse")
                 }.popover(isPresented: $showProjector) {
-                    VStack {
-                        Stepper("Per Curve Sample Count \(Int(perCurveSampleCount))",
-                                value: $perCurveSampleCount,
-                                in: 10...1000).monospacedDigit()
-                        Slider(value: $perCurveSampleCount, in: 10...900, step: 10)
-                        
-                        Stepper("Distance Tolerance (ε1): \(distanceTolerance)",
-                                value: $distanceToleranceMagnitude,
-                                in: 0...6).monospacedDigit()
-                        Slider(value: $distanceToleranceMagnitude, in: 0...6, step: 1)
-                        
-                        Text("Cosine Tolerance (ε2): \(cosineTolerance)").monospacedDigit()
-                        Slider(value: $angleTolerance, in: 0.001...5)
-                        
-                        Table(of: TableStringItem.self, selection: $selectedCurveNameList) {
-                            TableColumn("Name") { item in Text(item.name) }
-                        } rows: {
-                            ForEach (curveNameList) { item in TableRow(item) }
-                        }.tableColumnHeaders(.hidden)
-                            .frame(minHeight: 200)
-                        Text("Selected Curve Count: \(selectedCurveNameList.count)")
-                        
-                        Button {
-                            var lineSegments: [(SIMD3<Float>, SIMD3<Float>)] = []
-                            selectedCurveNameList.map { drawables[$0]! as! BSplineCurve }.forEach { curve in
-                                let projectionResults = surface.project(curve,
-                                                                        sampleCount: Int(perCurveSampleCount),
-                                                                        e1: distanceTolerance,
-                                                                        e2: cosineTolerance,
-                                                                        maxIteration: 100)
-                                lineSegments.append(contentsOf: projectionResults.map { ($0.point, $0.projectedPoint) })
-                            }
-                            
-                            let lss = LineSegments(segments: lineSegments)
-                            lss.setColor(.init(1, 0, 0, 1), .init(0, 1, 0, 1))
-                            lss.setColorStrategy(.lengthBinary(standard: 0.1))
-                            lss.name = drawables.uniqueName(name: "Projection on \(surface.name)")
-                            drawables.insert(key: lss.name, value: lss)
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Text("Confirm")
-                                Spacer()
-                            }
-                        }.buttonStyle(.borderedProminent)
-                            .disabled(selectedCurveNameList.isEmpty)
-                    }.frame(minWidth: 300).padding()
+                    TabView {
+                        Tab {
+                            CurvesToSurfaceProjectorView(viewModel: .init(drawables: drawables, surface: surface))
+                                .frame(minWidth: 300).padding()
+                        } label: { Text("Curves") }
+                        Tab {
+                            PointsToSurfaceProjectorView(viewModel: .init(drawables: drawables, surface: surface))
+                                .frame(minWidth: 300).padding()
+                        } label: { Text("Points") }
+                    }.padding()
                 }
                 
                 Button { showChart = true } label: {
@@ -114,6 +63,34 @@ struct BSplineSurfaceProperties: View {
                                         surface.insert(uKnot: newUKnot)
                                     } label: { Text("Insert") }
                                 }
+                                
+                                HStack {
+                                    Picker("Remove Knot: ", selection: $removingUKnotValue) {
+                                        ForEach(surface.uBasis.knots) { knot in
+                                            Text("\(knot.value)")
+                                                .tag(knot.value)
+                                        }
+                                    }
+                                    
+                                    Button {
+                                        guard removingUKnotValue != surface.uBasis.knots.first!.value
+                                            && removingUKnotValue != surface.uBasis.knots.last!.value else {
+                                            return
+                                        }
+                                        
+                                        guard let removingUKnotValue else { return }
+                                        
+                                        showControlPointMatrix = false
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            let removedMultiplicity = surface.remove(uKnot: removingUKnotValue, for: 1, withTolerance: 1e-5)
+                                            print("RM (S): \(removedMultiplicity)")
+                                            showControlPointMatrix = true
+                                        }
+                                    } label: {
+                                        Text("Confirm")
+                                    }.disabled(removingUKnotValue == nil)
+                                }
+                                
                                 BSplineBasisChart(basis: surface.uBasis)
                                     .frame(width: 400, height: 300).controlSize(.mini)
                             }
@@ -127,6 +104,34 @@ struct BSplineSurfaceProperties: View {
                                         surface.insert(vKnot: newVKnot)
                                     } label: { Text("Insert") }
                                 }
+                                
+                                HStack {
+                                    Picker("Remove Knot: ", selection: $removingVKnotValue) {
+                                        ForEach(surface.vBasis.knots) { knot in
+                                            Text("\(knot.value)")
+                                                .tag(knot.value)
+                                        }
+                                    }
+                                    
+                                    Button {
+                                        guard removingVKnotValue != surface.vBasis.knots.first!.value
+                                            && removingVKnotValue != surface.vBasis.knots.last!.value else {
+                                            return
+                                        }
+                                        
+                                        guard let removingVKnotValue else { return }
+                                        
+                                        showControlPointMatrix = false
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            let removedMultiplicity = surface.remove(vKnot: removingVKnotValue, for: 1, withTolerance: 1e-5)
+                                            print("RM (S): \(removedMultiplicity)")
+                                            showControlPointMatrix = true
+                                        }
+                                    } label: {
+                                        Text("Confirm")
+                                    }.disabled(removingVKnotValue == nil)
+                                }
+                                
                                 BSplineBasisChart(basis: surface.vBasis)
                                     .frame(width: 400, height: 300).controlSize(.mini)
                             }
@@ -206,26 +211,28 @@ struct BSplineSurfaceProperties: View {
                     .monospacedDigit()
             }
             
-            GroupBox {
-                BSplineSurfaceControlPointMatrix(surface: surface).frame(minHeight: 200)
-            } label: {
-                HStack {
-                    Text("Control Points")
-                    Toggle(isOn: .init(get: { surface.showControlNet }, 
-                                       set: { show in surface.showControlNet = show })) {
-                        Label("Show", systemImage: surface.showControlNet ? "eye.fill" : "eye.slash.fill")
-                    }.toggleStyle(.button).labelStyle(.iconOnly).buttonStyle(.plain)
-                    Spacer()
-                    Button {
-                        let points = surface.controlNet.flatMap { $0 }.map { SIMD3<Float>($0.x, $0.y, $0.z) / $0.w }
-                        let pointSet = PointSet(points: points)
-                        pointSet.name = drawables.uniqueName(name: "Control Net of \(surface.name)")
-                        drawables.insert(key: pointSet.name, value: pointSet)
-                    } label: {
-                        Label("Export", systemImage: "square.and.arrow.up").labelStyle(.iconOnly)
-                    }.buttonStyle(.plain)
-                }
-            }.controlSize(.small)
+            if showControlPointMatrix {
+                GroupBox {
+                    BSplineSurfaceControlPointMatrix(surface: surface).frame(minHeight: 200)
+                } label: {
+                    HStack {
+                        Text("Control Points \(surface.uBasis.controlPointCount) x \(surface.vBasis.controlPointCount)")
+                        Toggle(isOn: .init(get: { surface.showControlNet },
+                                           set: { show in surface.showControlNet = show })) {
+                            Label("Show", systemImage: surface.showControlNet ? "eye.fill" : "eye.slash.fill")
+                        }.toggleStyle(.button).labelStyle(.iconOnly).buttonStyle(.plain)
+                        Spacer()
+                        Button {
+                            let points = surface.controlNet.flatMap { $0 }.map { SIMD3<Float>($0.x, $0.y, $0.z) / $0.w }
+                            let pointSet = PointSet(points: points)
+                            pointSet.name = drawables.uniqueName(name: "Control Net of \(surface.name)")
+                            drawables.insert(key: pointSet.name, value: pointSet)
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up").labelStyle(.iconOnly)
+                        }.buttonStyle(.plain)
+                    }
+                }.controlSize(.small)
+            }
         }
     }
     

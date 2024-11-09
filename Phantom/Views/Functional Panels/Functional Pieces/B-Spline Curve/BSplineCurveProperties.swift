@@ -29,6 +29,10 @@ struct BSplineCurveProperties: View {
     
     @State private var curveColor: Color = .black
     
+    @State private var knotValue: Float?
+    
+    @State private var showControlPointList: Bool = true
+    
     var curveNameList: [TableStringItem] {
         drawables.keys.filter {
             drawables[$0] is BSplineCurve
@@ -145,6 +149,33 @@ struct BSplineCurveProperties: View {
                             TextField("Upperbound", value: $newUpperbound, format: .number)
                         }
                         
+                        HStack {
+                            Picker("Remove Knot: ", selection: $knotValue) {
+                                ForEach(curve.basis.knots) { knot in
+                                    Text("\(knot.value)")
+                                        .tag(knot.value)
+                                }
+                            }
+                            
+                            Button {
+                                guard knotValue != curve.basis.knots.first!.value
+                                    && knotValue != curve.basis.knots.last!.value else {
+                                    return
+                                }
+                                
+                                guard let knotValue else { return }
+                                
+                                showControlPointList = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    let removedMultiplicity = curve.remove(knotValue: knotValue, times: 1, distanceTolerance: 1e-6)
+                                    print("RM: \(removedMultiplicity)")
+                                    showControlPointList = true
+                                }
+                            } label: {
+                                Text("Confirm")
+                            }.disabled(knotValue == nil)
+                        }
+                        
                         BSplineBasisChart(basis: curve.basis).frame(minWidth: 400, minHeight: 300).controlSize(.mini)
                     }.onChange(of: curve.basis.requireUpdateBasis) {
                         print("property panel update basis: \(curve.basis.requireUpdateBasis)")
@@ -155,24 +186,26 @@ struct BSplineCurveProperties: View {
                 }
             }
             
-            GroupBox {
-                ColorPicker(selection: $curveColor, supportsOpacity: false) {
-                    Text("Whole Curve Color")
-                }.onChange(of: curveColor) {
-                    curve.controlPointColor = curve.controlPointColor.map { _ in
-                        let rc = curveColor.resolve(in: environment)
-                        return SIMD4<Float>(rc.red, rc.green, rc.blue, rc.opacity)
+            if showControlPointList {
+                GroupBox {
+                    ColorPicker(selection: $curveColor, supportsOpacity: false) {
+                        Text("Whole Curve Color")
+                    }.onChange(of: curveColor) {
+                        curve.controlPointColor = curve.controlPointColor.map { _ in
+                            let rc = curveColor.resolve(in: environment)
+                            return SIMD4<Float>(rc.red, rc.green, rc.blue, rc.opacity)
+                        }
                     }
-                }
-                BSplineCurveControlPointList(curve: curve).frame(minHeight: 200)
-                    .controlSize(.small)
-            } label: {
-                HStack {
-                    Text("Control Points")
-                    Toggle(isOn: .init(get: { curve.showControlPoints },
-                                       set: { value in curve.showControlPoints = value })) {
-                        Label("Show", systemImage: curve.showControlPoints ? "eye.fill" : "eye.slash.fill")
-                    }.toggleStyle(.button).labelStyle(.iconOnly).buttonStyle(.plain)
+                    BSplineCurveControlPointList(curve: curve).frame(minHeight: 200)
+                        .controlSize(.small)
+                } label: {
+                    HStack {
+                        Text("Control Points")
+                        Toggle(isOn: .init(get: { curve.showControlPoints },
+                                           set: { value in curve.showControlPoints = value })) {
+                            Label("Show", systemImage: curve.showControlPoints ? "eye.fill" : "eye.slash.fill")
+                        }.toggleStyle(.button).labelStyle(.iconOnly).buttonStyle(.plain)
+                    }
                 }
             }
         }

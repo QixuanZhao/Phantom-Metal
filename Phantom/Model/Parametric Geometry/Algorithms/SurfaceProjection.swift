@@ -274,4 +274,22 @@ extension BSplineSurface {
                        maxIteration: maxIteration)
     }
     
+    func inverse(_ points: [SIMD3<Float>],
+                 startValueCandidates: [(SIMD2<Float>, SIMD3<Float>)] = [],
+                 e1: Float = 1e-6,
+                 e2: Float = 1e-6,
+                 maxIteration: Int = 100) -> [SIMD2<Float>] {
+        return points.map { point in
+            let uv0 = startValueForInvsersion(point, candidates: startValueCandidates)
+            let uSpanStart = uBasis.containingKnotSpans(of: uv0[0]).first!.start.knot.value
+            let vSpanStart = vBasis.containingKnotSpans(of: uv0[1]).first!.start.knot.value
+            let uSpanEnd = uBasis.containingKnotSpans(of: uv0[0]).last!.end.knot.value
+            let vSpanEnd = vBasis.containingKnotSpans(of: uv0[1]).last!.end.knot.value
+            return inverse(point, uv0: uv0,
+                           spanU: uSpanStart ... uSpanEnd,
+                           spanV: vSpanStart ... vSpanEnd,
+                           e1: e1, e2: e2,
+                           maxIteration: maxIteration)
+        }
+    }
 }

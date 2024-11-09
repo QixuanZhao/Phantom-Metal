@@ -70,5 +70,5 @@ let system = MetalSystem(device: MTLCreateSystemDefaultDevice()!,
 let defaultMaterialWrapper = MaterialWrapper(material: system.defaultMaterial)
 
 enum PhantomError: Error {
-    case unknownError(String)
+    case unknown(String)
 }

@@ -15,6 +15,11 @@ struct MiscellaneousPanel: View {
     
     var body: some View {
         Grid (alignment: .leadingFirstTextBaseline) {
+            Toggle("Point Border", isOn: .init(get: { renderer.uniform.pointSizeAndCurvilinearPerspective.z > 0 },
+                                               set: { renderer.uniform.pointSizeAndCurvilinearPerspective.z = $0 ? 1 : 0 }))
+                .toggleStyle(.switch)
+                .controlSize(.small)
+            
             GridRow {
                 Text("Point Size")
                 Slider(value: .init(get: { renderer.uniform.pointSizeAndCurvilinearPerspective.x },

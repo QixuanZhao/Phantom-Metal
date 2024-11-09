@@ -14,22 +14,18 @@ struct GordonSurfaceConstructor: View {
     
     @State private var pickedUSections: [String] = []
     @State private var pickedVSections: [String] = []
-    @State private var pickedGuideCurves: [String] = []
     
     @State private var restCurves: [String] = []
     
     @State private var selectedUCurveName: String? = nil
     @State private var selectedVCurveName: String? = nil
-    @State private var selectedGuideCurveName: String? = nil
     @State private var selectedCurveName: String? = nil
     
-    @State private var generateVSections: Bool = false
+    @State private var isoV: [Float] = [0, 1]
+    @State private var newV: Float = 0
     
-    @State private var isoPointsParameters: [Float] = []
-    @State private var isoPoints: [[SIMD3<Float>]] = []
-    
-    @State private var gordonSurface: GordonSurface? = nil
-    @State private var strictMode: Bool = false
+    @State private var isoU: [Float] = [0, 1]
+    @State private var newU: Float = 0
     
     var uSections: [TableStringItem] {
         pickedUSections.map { TableStringItem(name: $0) }
@@ -39,24 +35,80 @@ struct GordonSurfaceConstructor: View {
         pickedVSections.map { TableStringItem(name: $0) }
     }
     
-    var guides: [TableStringItem] {
-        pickedGuideCurves.map { TableStringItem(name: $0) }
-    }
-    
     var rest: [TableStringItem] {
         restCurves.map { TableStringItem(name: $0) }
+    }
+    
+    var vListView: some View {
+        GroupBox {
+            HStack {
+                TextField("Inner V", value: $newV, format: .number)
+                Button {
+                    if let index = isoV.firstIndex(where: { newV <= $0 }) {
+                        if index != 0 && newV < isoV[index] {
+                            isoV.insert(newV, at: index)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            Table(isoV.map { TableStringItem(name: "\($0)") }) {
+                TableColumn("#") { Text($0.name).monospacedDigit() }
+            }.frame(minHeight: 100).tableColumnHeaders(.hidden)
+                .pasteDestination(for: String.self,
+                    action: { strings in
+                    if let string = strings.first {
+                        if let json = try? JSONSerialization.jsonObject(with: string.data(using: .utf8)!) as? [Double] {
+                            let parameters = json.map { Float($0) }
+                            isoV = parameters
+                        }
+                    }
+                })
+        } label: {
+            Text("Fixed V")
+        }
+    }
+    
+    var uListView: some View {
+        GroupBox {
+            HStack {
+                TextField("Inner U", value: $newU, format: .number)
+                Button {
+                    if let index = isoU.firstIndex(where: { newU <= $0 }) {
+                        if index != 0 && newU < isoU[index] {
+                            isoU.insert(newU, at: index)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            Table(isoU.map { TableStringItem(name: "\($0)") }) {
+                TableColumn("#") { Text($0.name).monospacedDigit() }
+            }.frame(minHeight: 100).tableColumnHeaders(.hidden)
+                .pasteDestination(for: String.self,
+                    action: { strings in
+                    if let string = strings.first {
+                        if let json = try? JSONSerialization.jsonObject(with: string.data(using: .utf8)!) as? [Double] {
+                            let parameters = json.map { Float($0) }
+                            isoU = parameters
+                        }
+                    }
+                })
+        } label: {
+            Text("Fixed U")
+        }
     }
     
     @ViewBuilder
     var gordonPanel: some View {
         HStack {
-            Toggle(isOn: $strictMode) {
-                Label("Strict Mode", systemImage: "crown.fill")
-            }
-            Spacer()
-        }.controlSize(.small)
-        
-        HStack {
+            VStack {
+                vListView
+                uListView
+            }.frame(minWidth: 200)
+            
             VStack (alignment: .trailing) {
                 HStack {
                     GroupBox {
@@ -107,30 +159,6 @@ struct GordonSurfaceConstructor: View {
                         }.disabled(selectedCurveName == nil)
                     }
                 }
-                
-                HStack {
-                    GroupBox {
-                        Table(guides, selection: $selectedGuideCurveName) {
-                            TableColumn("Name") { Text($0.name) }
-                        }.frame(minHeight: 100).tableColumnHeaders(.hidden)
-                    } label: { Text("Guide Curves") }
-                    VStack {
-                        Button {
-                            restCurves.append(selectedGuideCurveName!)
-                            pickedGuideCurves.remove(at: pickedGuideCurves.firstIndex(of: selectedGuideCurveName!)!)
-                            selectedGuideCurveName = nil
-                        } label: {
-                            Image(systemName: "arrowshape.right.fill")
-                        }.disabled(selectedGuideCurveName == nil)
-                        Button {
-                            pickedGuideCurves.append(selectedCurveName!)
-                            restCurves.remove(at: restCurves.firstIndex(of: selectedCurveName!)!)
-                            selectedCurveName = nil
-                        } label: {
-                            Image(systemName: "arrowshape.left.fill")
-                        }.disabled(selectedCurveName == nil)
-                    }
-                }
             }.frame(minWidth: 200)
             
             GroupBox("B-Spline Curves") {
@@ -140,32 +168,23 @@ struct GordonSurfaceConstructor: View {
             }.frame(minWidth: 200)
         }.controlSize(.small)
         
+        
         Button {
             let uSections = pickedUSections.map { drawables[$0]! as! BSplineCurve }
             let vSections = pickedVSections.map { drawables[$0]! as! BSplineCurve }
-            let guides = pickedGuideCurves.map { drawables[$0]! as! BSplineCurve }
             
-            gordonSurface = GordonSurface(originalUSections: uSections,
-                                          originalVSections: vSections,
-                                          guideCurves: guides)
-            
-            if gordonSurface!.construct() {
-                gordonSurface!.guide(times: 5)
+            guard let gordonSurface = try? GordonSurface(uSections: uSections,
+                                                         vSections: vSections,
+                                                         isoU: isoU,
+                                                         isoV: isoV) else {
+                print("Gordon Surface Init Failed")
+                return
             }
             
-            let surface = gordonSurface!.constructionResult!.gordonSurface
-            surface.name = drawables.uniqueName(name: "Gordon Surface")
-            drawables.insert(key: surface.name, value: surface)
-            
-            for (i, s) in gordonSurface!.guideResult.surfaces.enumerated() {
-                s.name = drawables.uniqueName(name: "Guided Surface (\(i + 1)")
-                drawables.insert(key: s.name, value: s)
-            }
-            
-            for (i, p) in gordonSurface!.guideResult.projectionResult.enumerated() {
-                let ls = LineSegments(segments: p.map { ($0.projectedPoint, $0.point) })
-                ls.name = drawables.uniqueName(name: "Projection (\(i)")
-                drawables.insert(key: ls.name, value: ls)
+            if gordonSurface.construct() == true {
+                let surface = gordonSurface.constructionResult!.gordonSurface
+                surface.name = drawables.uniqueName(name: "Gordon Surface")
+                drawables.insert(key: surface.name, value: surface)
             }
         } label: {
             HStack {
@@ -187,17 +206,15 @@ struct GordonSurfaceConstructor: View {
             }.padding()
         }.onAppear {
             restCurves = drawables.keys.filter {
-                drawables[$0] is BSplineCurve &&
-                !pickedUSections.contains($0) &&
-                !pickedVSections.contains($0) &&
-                !pickedGuideCurves.contains($0)
+                drawables[$0] is BSplineCurve
+                && !pickedUSections.contains($0)
+                && !pickedVSections.contains($0)
             }
         }.onChange(of: drawables.count) {
             restCurves = drawables.keys.filter {
-                drawables[$0] is BSplineCurve &&
-                !pickedUSections.contains($0) &&
-                !pickedVSections.contains($0) &&
-                !pickedGuideCurves.contains($0)
+                drawables[$0] is BSplineCurve
+                && !pickedUSections.contains($0)
+                && !pickedVSections.contains($0)
             }
         }
     }

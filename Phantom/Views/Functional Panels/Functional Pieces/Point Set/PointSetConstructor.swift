@@ -9,6 +9,8 @@ import SwiftUI
 import simd
 
 struct PointSetConstructor: View {
+    @Environment(DrawableCollection.self) private var drawables
+    
     @State private var showConstructor = false
     
     var body: some View {
@@ -18,9 +20,12 @@ struct PointSetConstructor: View {
             Label("Point Set", systemImage: "chart.dots.scatter")
         }.popover(isPresented: $showConstructor) {
             TabView {
+                CurveSamplePointSetPanel(viewModel: .init(drawables: drawables))
+                    .tabItem { Text("Curve Samples") }
                 PlainPointSetPanel().tabItem { Text("Plain") }
                 IntersectionPointPanel().tabItem { Text("Intersection") }
             }.frame(minWidth: 300, minHeight: 400).padding()
+                .tabViewStyle(.grouped)
         }
     }
 }

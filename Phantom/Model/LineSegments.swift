@@ -117,6 +117,8 @@ class LineSegments: DrawableBase {
         encoder.setRenderPipelineState(Axes.geometryPassState)
         encoder.setVertexBuffer(vertexBuffer, offset: 0, index: BufferPosition.vertex.rawValue)
         encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: vertices.count, instanceCount: instanceCount, baseInstance: baseInstance)
+        
+        encoder.setRenderPipelineState(PointSet.geometryPassState)
         encoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: vertices.count, instanceCount: instanceCount, baseInstance: baseInstance)
     }
     

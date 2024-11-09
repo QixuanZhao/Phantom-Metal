@@ -93,6 +93,7 @@ struct LineSegmentsProperties: View {
         Text("Max Length: \(lineSegments.maxLength)").textSelection(.enabled)
         Text("Min Length: \(lineSegments.minLength)").textSelection(.enabled)
         Text("Mean Length: \(lineSegments.meanLength)").textSelection(.enabled)
+        Text("Count: \(lineSegments.lengths.count)")
     }
     
     init(lineSegments: LineSegments) {

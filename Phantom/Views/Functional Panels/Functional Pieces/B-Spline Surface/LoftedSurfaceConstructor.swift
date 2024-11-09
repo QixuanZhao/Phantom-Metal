@@ -197,8 +197,7 @@ struct LoftedSurfaceConstructor: View {
                                     let guidanceResult = try BSplineApproximator.guide(originalSurface: surface,
                                                                                        samples: projectionResult.map { ($0.parameters, $0.point) },
                                                                                        isoU: blendParameter == .v ? [surface.uBasis.knots.first!.value, surface.uBasis.knots.last!.value] : loftResult.blendParameters,
-                                                                                       isoV: blendParameter == .v ? loftResult.blendParameters : [surface.vBasis.knots.first!.value, surface.vBasis.knots.last!.value],
-                                                                                       knotDensityFactor: knotDensity)
+                                                                                       isoV: blendParameter == .v ? loftResult.blendParameters : [surface.vBasis.knots.first!.value, surface.vBasis.knots.last!.value])
                                     
                                     surface = guidanceResult.modifiedSurface
                                     

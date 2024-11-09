@@ -80,14 +80,49 @@ struct BSplineCurveControlPointItem: View {
         self.curve = curve
         self.controlPointIndex = controlPointIndex
         
-        self.x = .init(get: { curve.controlPoints[controlPointIndex].x },
-                       set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 0) })
-        self.y = .init(get: { curve.controlPoints[controlPointIndex].y },
-                       set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 1) })
-        self.z = .init(get: { curve.controlPoints[controlPointIndex].z },
-                       set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 2) })
-        self.w = .init(get: { curve.controlPoints[controlPointIndex].w },
-                       set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 3) })
+        let realCount = curve.controlPoints.count
+        if controlPointIndex >= realCount {
+            self.x = .constant(0)
+            self.y = .constant(0)
+            self.z = .constant(0)
+            self.w = .constant(0)
+            return
+        }
+        
+        self.x = .init(get: {
+            if controlPointIndex < curve.controlPoints.count {
+                curve.controlPoints[controlPointIndex].x
+            } else { 0 }
+        }, set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 0) })
+        
+        self.y = .init(get: {
+            if controlPointIndex < curve.controlPoints.count {
+                curve.controlPoints[controlPointIndex].y
+            } else { 0 }
+        }, set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 1) })
+        self.z = .init(get: {
+            if controlPointIndex < curve.controlPoints.count {
+                curve.controlPoints[controlPointIndex].z
+            } else { 0 }
+        }, set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 2) })
+        self.w = .init(get: {
+            if controlPointIndex < curve.controlPoints.count {
+                curve.controlPoints[controlPointIndex].w
+            } else { 0 }
+        }, set: { curve.setControlPointComponent(at: controlPointIndex, $0, componentIndex: 3) })
+    }
+}
+
+extension BSplineCurveControlPointItem {
+    @Observable
+    class ViewModel {
+        var x: Float = 0
+        var y: Float = 0
+        var z: Float = 0
+        var w: Float = 0
+        
+        var curve: BSplineCurve?
+        var controlPointIndex: Int?
     }
 }
 

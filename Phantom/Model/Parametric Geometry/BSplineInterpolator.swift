@@ -9,10 +9,18 @@ import simd
 import MetalPerformanceShaders
 
 extension BSplineBasis {
+    
+    /// return a knot vector by averaging given _N_ parameters
+    ///
+    /// - Parameters:
+    ///  - for: the specified _N_ parameters
+    ///  - withDegree: the degree _p_ for the knot vector
+    /// - Returns: a knot vector whose multiplicity sum should be _N+p+1_
     static func averageKnots(for parameters: [Float],
                              withDegree degree: Int) -> [Knot] {
-        let innerKnotMultiplicitySum = parameters.count - degree - 1
-        var knots: [Knot] = [.init(value: parameters.first!, multiplicity: degree + 1)]
+        let order = degree + 1
+        let innerKnotMultiplicitySum = parameters.count - order
+        var knots: [Knot] = [.init(value: parameters.first!, multiplicity: order)]
         if innerKnotMultiplicitySum >= 1 {
             for i in 1...innerKnotMultiplicitySum {
                 var knot: Float = 0
@@ -23,7 +31,7 @@ extension BSplineBasis {
                 knots.append(.init(value: knot, multiplicity: 1))
             }
         }
-        knots.append(.init(value: parameters.last!, multiplicity: degree + 1))
+        knots.append(.init(value: parameters.last!, multiplicity: order))
         return knots
     }
 }

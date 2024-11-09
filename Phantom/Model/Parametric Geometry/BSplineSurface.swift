@@ -142,6 +142,104 @@ class BSplineSurface: DrawableBase {
         controlPointColor[ji.0][ji.1] = color
     }
     
+    
+    /// remove v knot for the specified number of times
+    ///
+    /// - Parameters:
+    ///   - vKnot: the v knot to be removed
+    ///   - for: the expected multiplicity to be removed
+    ///   - withTolerance: the distance tolerance used by knot removal algorithm
+    /// - Returns: the actual multiplicity removed
+    @discardableResult
+    func remove(vKnot v: Float, for times: Int, withTolerance e: Float = 1e-6) -> Int {
+        var intermediateCurves: [BSplineCurve] = []
+        let curveCount = uBasis.multiplicitySum - uBasis.order
+        for i in 0..<curveCount {
+            let curve = BSplineCurve(knots: vBasis.knots, controlPoints: controlNet.map { $0[i] }, degree: vBasis.degree)
+            intermediateCurves.append(curve)
+        }
+        
+        let removedMultiplicity = intermediateCurves.map {
+            $0.remove(knotValue: v, times: times, distanceTolerance: e)
+        }
+        
+        guard let actuallyRemovedMultiplicity = removedMultiplicity.min() else { return 0 }
+        
+        for i in 0..<curveCount {
+            if removedMultiplicity[i] != actuallyRemovedMultiplicity {
+                let curve = BSplineCurve(knots: vBasis.knots, controlPoints: controlNet.map { $0[i] }, degree: vBasis.degree)
+                intermediateCurves[i] = curve
+                do {
+                    let tp = curve.remove(knotValue: v, times: actuallyRemovedMultiplicity, distanceTolerance: e)
+                    guard tp == actuallyRemovedMultiplicity else {
+                        throw PhantomError.unknown("actually removed multiplicity does not match")
+                    }
+                } catch {
+                    print(error.localizedDescription)
+                    return 0
+                }
+            }
+        }
+        
+        var newControlNet: [[SIMD4<Float>]] = .init(repeating: .init(repeating: .zero, count: curveCount), count: intermediateCurves.first!.controlPoints.count)
+        for i in 0..<curveCount {
+            let curve = intermediateCurves[i]
+            for j in 0..<curve.controlPoints.count {
+                newControlNet[j][i] = curve.controlPoints[j]
+            }
+        }
+        
+        controlNet = newControlNet
+        controlPointColor.removeLast(actuallyRemovedMultiplicity)
+        vBasis = intermediateCurves.first!.basis
+        
+        return actuallyRemovedMultiplicity
+    }
+    
+    /// remove u knot for the specified number of times
+    ///
+    /// - Parameters:
+    ///   - uKnot: the u knot to be removed
+    ///   - for: the expected multiplicity to be removed
+    ///   - withTolerance: the distance tolerance used by knot removal algorithm
+    /// - Returns: the actual multiplicity removed
+    @discardableResult
+    func remove(uKnot u: Float, for times: Int, withTolerance e: Float = 1e-6) -> Int {
+        var intermediateCurves = controlNet.map { controlPoints in
+            BSplineCurve(knots: uBasis.knots, controlPoints: controlPoints, degree: uBasis.degree)
+        }
+        
+        let removedMultiplicity = intermediateCurves.map {
+            $0.remove(knotValue: u, times: times, distanceTolerance: e)
+        }
+        
+        guard let actuallyRemovedMultiplicity = removedMultiplicity.min() else { return 0 }
+        
+        intermediateCurves = controlNet.map { controlPoints in
+            BSplineCurve(knots: uBasis.knots, controlPoints: controlPoints, degree: uBasis.degree)
+        }
+        
+        do {
+            try intermediateCurves.forEach { curve in
+                let tp = curve.remove(knotValue: u, times: actuallyRemovedMultiplicity, distanceTolerance: e)
+                guard tp == actuallyRemovedMultiplicity else {
+                    throw PhantomError.unknown("actually removed multiplicity does not match")
+                }
+            }
+        } catch {
+            print(error.localizedDescription)
+            return 0
+        }
+        
+        controlNet = intermediateCurves.map { $0.controlPoints }
+        for i in 0..<controlPointColor.count {
+            controlPointColor[i].removeLast(actuallyRemovedMultiplicity)
+        }
+        uBasis = intermediateCurves.first!.basis
+        
+        return actuallyRemovedMultiplicity
+    }
+    
     @discardableResult
     func insert(uKnot u: Float) -> Bool {
         let p = uBasis.degree
@@ -178,7 +276,7 @@ class BSplineSurface: DrawableBase {
                 controlNet[j][i] = alpha * self.controlNet[j][i] + (1 - alpha) * self.controlNet[j][i - 1]
             }
             
-            self.controlPointColor[j].insert(.one, at: k)
+            self.controlPointColor[j].insert(.init(.zero, 1), at: k)
         }
         
         self.controlNet = controlNet
@@ -228,7 +326,7 @@ class BSplineSurface: DrawableBase {
             }
         }
         
-        self.controlPointColor.insert(.init(repeating: .one, count: iControlPointCount), at: k)
+        self.controlPointColor.insert(.init(repeating: .init(.zero, 1), count: iControlPointCount), at: k)
         self.controlNet = controlNet
         self.vBasis.knots = knots
         

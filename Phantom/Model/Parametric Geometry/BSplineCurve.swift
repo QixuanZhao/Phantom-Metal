@@ -6,6 +6,7 @@
 //
 
 import Metal
+import simd
 
 @Observable
 class BSplineCurve: DrawableBase {
@@ -117,7 +118,7 @@ class BSplineCurve: DrawableBase {
                                    vertexStart: 0,
                                    vertexCount: segmentVertexCount,
                                    instanceCount: instanceCount, baseInstance: baseInstance)
-            if i > 0 {
+            if showControlPoints && i > 0 {
                 encoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: 1, 
                                        instanceCount: instanceCount, baseInstance: baseInstance)
             }
@@ -189,6 +190,132 @@ extension BSplineCurve {
         BSplineCurve(knots: basis.knots, controlPoints: controlPoints, degree: basis.degree, showControlPoints: showControlPoints)
     }
     
+    /// Try removing the specified knot for a specified number of times (multiplicity).
+    ///
+    /// - Parameters:
+    ///  - knotValue: value of the knot to be removed
+    ///  - times: multiplicity of the knot ot be removed
+    /// - Returns: the actual multiplicity removed
+    @discardableResult
+    func remove(knotValue u: Float, times k: Int, distanceTolerance e: Float = 1e-3) -> Int {
+        
+//        let alpha: (Int, Int) -> Float = { i, t in
+//            return 0
+//        }
+        
+        guard k > 0 else { return 0 }
+        
+        guard let indexedKnotIndex = self.basis.indexedKnots.firstIndex(where: {
+            $0.knot.value == u
+        }) else { return 0 }
+        
+        let indexedKnot = self.basis.indexedKnots[indexedKnotIndex]
+        
+//        let n = self.controlPoints.count - 1
+        let p = self.basis.degree
+//        let m = n + p + 1
+        let order = self.basis.order
+//        var removedMultiplicity = 0
+        
+//        let knotFirstIndex = indexedKnot.firstIndex
+//        var knotLastIndex = indexedKnot.lastIndex
+        let s = indexedKnot.knot.multiplicity
+        let r = indexedKnot.lastIndex
+        
+        let fout = (2 * r - s - p) / 2
+        var first = r - p
+        var last = r - s
+        
+//        var knotMultiplicity = indexedKnot.knot.multiplicity
+        
+//        var P: [[SIMD4<Float>]] = []
+//        P.append(self.controlPoints)
+        
+        let U = self.basis.knotVector
+        var temp: [SIMD4<Float>] = .init(repeating: .zero, count: 2 * p + 1)
+        
+        var tp = 0
+        
+//        var P = self.controlPoints
+        
+        for t in 0..<k {
+            let offset = first - 1
+//            temp[0] = P[t][offset]
+            temp[0] = self.controlPoints[offset]
+            temp[last + 1 - offset] = self.controlPoints[last + 1]
+            var i = first
+            var j = last
+            var ii = 1
+            var jj = last - offset
+            
+            var remflag = false
+            
+            while (j - i > t) {
+                let ai = (u - U[i]) / (U[i + order + t] - U[i])
+                let aj = (u - U[j - t]) / (U[j + order] - U[j - t])
+                
+                temp[ii] = (self.controlPoints[i] - (1 - ai) * temp[ii - 1]) / ai
+                temp[jj] = (self.controlPoints[j] - aj * temp[jj + 1]) / (1 - aj)
+                i += 1
+                ii += 1
+                j -= 1
+                jj -= 1
+            }
+            
+            if (j - i < t) {
+                if (distance_squared(temp[ii - 1], temp[jj + 1]) <= e * e) {
+                    remflag = true
+                }
+            } else {
+                let ai = (u - U[i]) / (U[i + order + t] - U[i])
+                if (distance_squared(self.controlPoints[i], ai * temp[ii + t + 1] + (1 - ai) * temp[ii - 1]) <= e * e) {
+                    remflag = true
+                }
+            }
+            
+            if (!remflag) {
+                break
+            } else {
+                i = first
+                j = last
+                while (j - i > t) {
+                    self.controlPoints[i] = temp[i - offset]
+                    self.controlPoints[j] = temp[j - offset]
+                    i += 1
+                    j -= 1
+                }
+            }
+            
+            first -= 1
+            last += 1
+            tp += 1
+        }
+        
+        if (tp == 0) { return 0 }
+        
+        if self.basis.knots[indexedKnotIndex].multiplicity > 1 {
+            self.basis.knots[indexedKnotIndex].multiplicity -= 1
+        } else {
+            self.basis.knots.remove(at: indexedKnotIndex)
+        }
+        
+        var j = fout
+        var i = j
+        
+        for k in 1..<tp {
+            if (k % 2 == 1) {
+                i += 1
+            } else {
+                j -= 1
+            }
+        }
+        
+        self.controlPoints.removeSubrange(j...i)
+        self.controlPointColor.removeSubrange(j...i)
+        
+        return tp
+    }
+    
     @discardableResult
     func insert(knotValue: Float) -> Bool {
         let p = basis.degree
@@ -226,7 +353,7 @@ extension BSplineCurve {
         }
         
         self.controlPoints = controlPoints
-        self.controlPointColor.insert(.one, at: k)
+        self.controlPointColor.insert(.init(0, 0, 0, 1), at: k)
         self.basis.knots = knots
         
         return true

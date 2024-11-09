@@ -17,7 +17,7 @@ class MatrixUtility {
                                    destinationsAreTransposed: false)
         
         guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
-            throw PhantomError.unknownError("Cannot create command buffer")
+            throw PhantomError.unknown("Cannot create command buffer")
         }
         
         let destination = MPSMatrix(device: system.device,
@@ -202,15 +202,15 @@ class MatrixUtility {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
-        switch status {
-        case .failure: print("decomp failed")
-        case .nonPositiveDefinite: print("non positive definite")
-        case .singular: print("singular")
-        case .success: print("decomp success")
-        @unknown default:
-            print("unknown status")
-        }
+//        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
+//        switch status {
+//        case .failure: print("decomp failed")
+//        case .nonPositiveDefinite: print("non positive definite")
+//        case .singular: print("singular")
+//        case .success: print("decomp success")
+//        @unknown default:
+//            print("unknown status")
+//        }
         
         return solution
     }
@@ -270,15 +270,15 @@ class MatrixUtility {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
-        switch status {
-        case .failure: print("decomp failed")
-        case .nonPositiveDefinite: print("non positive definite")
-        case .singular: print("singular")
-        case .success: print("decomp success")
-        @unknown default:
-            print("unknown status")
-        }
+//        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
+//        switch status {
+//        case .failure: print("decomp failed")
+//        case .nonPositiveDefinite: print("non positive definite")
+//        case .singular: print("singular")
+//        case .success: print("decomp success")
+//        @unknown default:
+//            print("unknown status")
+//        }
         
         return solution
     }
@@ -349,15 +349,15 @@ class MatrixUtility {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
-        switch status {
-        case .failure: print("decomp failed")
-        case .nonPositiveDefinite: print("non positive definite")
-        case .singular: print("singular")
-        case .success: print("decomp success")
-        @unknown default:
-            print("unknown status")
-        }
+//        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
+//        switch status {
+//        case .failure: print("decomp failed")
+//        case .nonPositiveDefinite: print("non positive definite")
+//        case .singular: print("singular")
+//        case .success: print("decomp success")
+//        @unknown default:
+//            print("unknown status")
+//        }
         
         return solution
     }
@@ -420,15 +420,15 @@ class MatrixUtility {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
-        switch status {
-        case .failure: print("decomp failed")
-        case .nonPositiveDefinite: print("non positive definite")
-        case .singular: print("singular")
-        case .success: print("decomp success")
-        @unknown default:
-            print("unknown status")
-        }
+//        let status = decompositionStatus.contents().load(as: MPSMatrixDecompositionStatus.self)
+//        switch status {
+//        case .failure: print("decomp failed")
+//        case .nonPositiveDefinite: print("non positive definite")
+//        case .singular: print("singular")
+//        case .success: print("decomp success")
+//        @unknown default:
+//            print("unknown status")
+//        }
         
         return solution
     }

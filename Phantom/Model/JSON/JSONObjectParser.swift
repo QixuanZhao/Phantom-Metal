@@ -333,11 +333,11 @@ class JSONObjectParser {
             
             let segments = try array.map { segment in
                 guard let s = segment as? [[Double]] else {
-                    throw PhantomError.unknownError("segment is not [[Double]]")
+                    throw PhantomError.unknown("segment is not [[Double]]")
                 }
                 
                 guard s.count == 2 else {
-                    throw PhantomError.unknownError("segment element count is not 2")
+                    throw PhantomError.unknown("segment element count is not 2")
                 }
                 
                 return (SIMD3<Float>(Float(s[0][0]), Float(s[0][1]), Float(s[0][2])),

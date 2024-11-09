@@ -35,6 +35,8 @@ class BSplineBasisReader {
         secondDerivativeSamples.removeAll()
         thirdDerivativeSamples.removeAll()
         for (index, texture) in basis.basisTextures.enumerated() {
+            if index >= basis.basisTextures.count { break }
+            
             let interval = basis.knotSpans[index]
             let start = interval.start.knot.value
             let end = interval.end.knot.value

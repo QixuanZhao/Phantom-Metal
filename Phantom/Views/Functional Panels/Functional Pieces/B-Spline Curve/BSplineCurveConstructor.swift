@@ -15,12 +15,12 @@ extension BSplineBasis.Knot: Identifiable, Equatable {
     var id: Float { value }
 }
 
-extension CGPoint: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(x)
-        hasher.combine(y)
-    }
-}
+//extension CGPoint: @retroactive Hashable {
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(x)
+//        hasher.combine(y)
+//    }
+//}
 
 struct BSplineCurveConstructor: View {
     @Environment(DrawableCollection.self) private var drawables

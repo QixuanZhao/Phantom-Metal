@@ -82,18 +82,18 @@ struct DrawableTable: View {
             GridRow {
                 ModelLoader()
                 PointSetConstructor()
-//                BézierCurveConstructor()
+                BézierCurveConstructor()
                 BSplineCurveConstructor()
                 BSplineInterpolatedCurveConstructor()
                 BSplineSurfaceConstructor()
+            }
+            GridRow {
                 LoftedSurfaceConstructor()
                 GordonSurfaceConstructor()
                 LowGordonSurfaceConstructor()
                 GuidedSurfaceConstructor()
                 LSFSurfaceConstructor()
-            }
-            GridRow {
-                
+                CurveNetworkExtractionView()
             }
         }.labelStyle(.iconOnly)
     }

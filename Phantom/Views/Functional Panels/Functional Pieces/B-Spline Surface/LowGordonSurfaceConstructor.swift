@@ -47,6 +47,7 @@ struct LowGordonSurfaceConstructor: View {
     struct GuideCurveNode {
         let parameter: SIMD2<Float>
         let attachedIsoline: IsolineAttachment
+        let offsetAlongNormal: Float
         
         enum IsolineAttachment {
         case v
@@ -140,29 +141,6 @@ struct LowGordonSurfaceConstructor: View {
                                                description: Text("refresh required"))
                     } else {
                         List {
-//                            HStack {
-//                                Button {
-//                                    let clipboard = NSPasteboard.general
-//                                    if let data = try? JSONSerialization.data(withJSONObject: uIsoCurveParameters) {
-//                                        clipboard.setData(data, forType: .string)
-//                                        print("v values copied!")
-//                                    }
-//                                } label: {
-//                                    Label("Copy", systemImage: "doc.on.doc")
-//                                }
-//                                
-//                                Button {
-//                                    let clipboard = NSPasteboard.general
-//                                    if let data = clipboard.data(forType: .string) {
-//                                        if let values = try? JSONSerialization.jsonObject(with: data) as? [Float] {
-//                                            uIsoCurveParameters = values
-////                                            print("v values pasted!")
-//                                        }
-//                                    }
-//                                } label: {
-//                                    Label("Paste", systemImage: "doc.on.clipboard")
-//                                }
-//                            }
                             ForEach(uIsoCurveParameters, id: \.self) { v in
                                 HStack {
                                     Text("\(v)")
@@ -642,31 +620,40 @@ struct LowGordonSurfaceConstructor: View {
                                                     
                                                     if position == .leading {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u0, y: point.y),
-                                                                                        attachedIsoline: .v)
+                                                                                        attachedIsoline: .v,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .trailing {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u1, y: point.y),
-                                                                                        attachedIsoline: .v)
+                                                                                        attachedIsoline: .v,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .bottom {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: point.x, y: v0),
-                                                                                        attachedIsoline: .u)
+                                                                                        attachedIsoline: .u,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .top {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: point.x, y: v1),
-                                                                                        attachedIsoline: .u)
+                                                                                        attachedIsoline: .u,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .topLeading {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u0, y: v1),
-                                                                                        attachedIsoline: .both)
+                                                                                        attachedIsoline: .both,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .topTrailing {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u1, y: v1),
-                                                                                        attachedIsoline: .both)
+                                                                                        attachedIsoline: .both,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .bottomLeading {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u0, y: v0),
-                                                                                        attachedIsoline: .both)
+                                                                                        attachedIsoline: .both,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else if position == .bottomTrailing {
                                                         estimatedPoint = GuideCurveNode(parameter: SIMD2<Float>(x: u1, y: v0),
-                                                                                        attachedIsoline: .both)
+                                                                                        attachedIsoline: .both,
+                                                                                        offsetAlongNormal: .zero)
                                                     } else {
                                                         estimatedPoint = GuideCurveNode(parameter: point,
-                                                                                        attachedIsoline: .neither)
+                                                                                        attachedIsoline: .neither,
+                                                                                        offsetAlongNormal: .zero)
                                                     }
                                                 }
                                             }
@@ -698,25 +685,34 @@ struct LowGordonSurfaceConstructor: View {
                         VStack {
                             Stepper("Sample Count: \(sampleCount)", value: $sampleCount, in: 0...1000, step: 10)
                             List {
-                                ForEach (pointSeries, id: \.parameter) { point in
+                                ForEach (pointSeries.enumerated().map { ($0.offset, $0.element) }, id: \.0) { item in
                                     HStack {
-                                        HStack {
-                                            Text("\(point.parameter.x)")
-                                                .foregroundStyle((point.attachedIsoline == .both || point.attachedIsoline == .v) ? Color.accentColor : Color.primary)
-                                            Text("\(point.parameter.y)")
-                                                .foregroundStyle((point.attachedIsoline == .both || point.attachedIsoline == .u) ? Color.accentColor : Color.primary)
-                                        }
+                                        Text("\(item.0) ").monospacedDigit()
+                                        Text("\(item.1.parameter.x)")
+                                            .foregroundStyle((item.1.attachedIsoline == .both || item.1.attachedIsoline == .v) ? Color.accentColor : Color.primary)
+                                        Text("\(item.1.parameter.y)")
+                                            .foregroundStyle((item.1.attachedIsoline == .both || item.1.attachedIsoline == .u) ? Color.accentColor : Color.primary)
 
                                         Spacer()
+                                        
+                                        if item.1.attachedIsoline == .neither {
+                                            TextField("Offset Along Normal", value: .init(get: {
+                                                item.1.offsetAlongNormal
+                                            }, set: {
+                                                pointSeries[item.0] = .init(parameter: item.1.parameter,
+                                                                            attachedIsoline: .neither,
+                                                                            offsetAlongNormal: $0)
+                                            }), format: .number)
+                                            .textFieldStyle(.roundedBorder)
+                                        }
+                                        
                                         if !needInterpolation,
                                            let parameterInterpolationResult {
-                                            Text("\(parameterInterpolationResult.blendParameters[pointSeries.firstIndex { $0.parameter == point.parameter }!])")
+                                            Text("\(parameterInterpolationResult.blendParameters[item.0])")
                                         }
                                         Button {
-                                            if let index = pointSeries.firstIndex(where: { $0.parameter == point.parameter }) {
-                                                pointSeries.remove(at: index)
-                                                needInterpolation = true
-                                            }
+                                            pointSeries.remove(at: item.0)
+                                            needInterpolation = true
                                         } label: {
                                             Label("Delete", systemImage: "trash")
                                         }.controlSize(.mini)
@@ -731,9 +727,17 @@ struct LowGordonSurfaceConstructor: View {
                                 do {
                                     let spatialPoints: [SIMD3<Float>] = try pointSeries.map { point in
                                         if let loftedSurface {
-                                            return loftedSurface.point(at: point.parameter)!
+                                            let p = loftedSurface.point(at: point.parameter)!
+                                            if point.attachedIsoline == .neither {
+                                                let du = loftedSurface.point(at: point.parameter, derivativeOrder: (1, 0))!
+                                                let dv = loftedSurface.point(at: point.parameter, derivativeOrder: (0, 1))!
+                                                let normal = normalize(cross(du, dv))
+                                                return p + normal * point.offsetAlongNormal
+                                            } else {
+                                                return p
+                                            }
                                         } else {
-                                            throw PhantomError.unknownError("loft surface first")
+                                            throw PhantomError.unknown("loft surface first")
                                         }
                                     }
                                 

@@ -17,7 +17,7 @@ struct Particle: Codable {
     let density:  Float
     
     static func load(filename: String) throws -> [Particle]? {
-        if let json = try? String(contentsOfFile: filename) {
+        if let json = try? String(contentsOfFile: filename, encoding: .utf8) {
             return try parse(json: json)
         } else { return nil }
     }

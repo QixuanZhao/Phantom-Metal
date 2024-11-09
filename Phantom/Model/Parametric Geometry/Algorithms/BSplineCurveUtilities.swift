@@ -157,7 +157,7 @@ extension BSplineCurve {
             let currentCurveDomainStart = domainNodes[i]
             let currentCurveDomainEnd = domainNodes[i + 1]
             guard currentCurveDomainStart < currentCurveDomainEnd else {
-                throw PhantomError.unknownError("unsorted joints")
+                throw PhantomError.unknown("unsorted joints")
             }
             return curve.reparameterized(into: domainNodes[i] ... domainNodes[i + 1])!
         }

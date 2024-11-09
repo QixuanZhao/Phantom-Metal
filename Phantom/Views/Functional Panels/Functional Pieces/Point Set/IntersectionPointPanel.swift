@@ -81,4 +81,5 @@ struct IntersectionPointPanel: View {
 #Preview {
     IntersectionPointPanel()
         .environment(DrawableCollection())
+        .padding()
 }

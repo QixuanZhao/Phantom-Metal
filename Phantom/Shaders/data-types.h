@@ -11,7 +11,7 @@ struct Uniform {
     float4x4 view;
     float4x4 projection;
     float4   cameraPositionAndFOV;
-    float4   planesAndframeSize;
+    float4   planesAndFrameSize;
     float4   pointSizeAndCurvilinearPerspective;
 };
 
@@ -47,6 +47,7 @@ struct RasterizerData {
     float3 globalBitangent = float3(0);
     
     float pointSize [[point_size]];
+    bool pointBorder = false;
 };
 
 struct QuadData {

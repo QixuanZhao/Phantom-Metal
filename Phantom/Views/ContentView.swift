@@ -125,7 +125,7 @@ struct ContentView: View {
             }.tabItem {
                 Label("Material List", systemImage: "leaf")
             }
-        }
+        }.tabViewStyle(.grouped)
     }
     
     var body: some View {

@@ -11,13 +11,18 @@ struct BSplineCurveControlPointList: View {
     var curve: BSplineCurve
     
     struct ControlPoint: Identifiable {
+        var xyzw: [Float]
         var id: Int
     }
     
     var controlPoints: [ControlPoint] {
         var result: [ControlPoint] = []
         for i in 0..<curve.controlPoints.count {
-            result.append(ControlPoint(id: i))
+            result.append(ControlPoint(xyzw: [curve.controlPoints[i].x,
+                                              curve.controlPoints[i].y,
+                                              curve.controlPoints[i].z,
+                                              curve.controlPoints[i].w],
+                                       id: i))
         }
         return result
     }
@@ -30,6 +35,11 @@ struct BSplineCurveControlPointList: View {
             }
         }
     }
+}
+
+@Observable
+class BSplineCurveControlPointListModel {
+    
 }
 
 #Preview {

@@ -32,6 +32,7 @@ namespace geometry {
         
         const float actualSize = uniform.pointSizeAndCurvilinearPerspective.x;
         out.pointSize = actualSize / distance + actualSize / 2;
+        out.pointBorder = uniform.pointSizeAndCurvilinearPerspective.z > 0;
         
         return out;
     }
@@ -71,6 +72,22 @@ namespace geometry {
         out.position_normalFormat = float4(in.globalPosition, 0); // set w = 0 to disable normal
         return out;
     }
+    
+    /**
+     * the point fragment shader
+     */
+    [[fragment]] GeometryData pointFragmentShader(RasterizerData in [[stage_in]],
+                                                  float2 pointCoord [[point_coord]]) {
+        float indicator = distance_squared(pointCoord, float2(0.5));
+        if (indicator > 0.25) discard_fragment();
+        
+        GeometryData out;
+        if (in.pointBorder && indicator > 0.1) out.albedoSpecular = mix(in.color, float4(0.5), 0.5);
+        else out.albedoSpecular = in.color;
+        out.normal = float4(0);
+        out.position_normalFormat = float4(in.globalPosition, 0); // set w = 0 to disable normal
+        return out;
+    }
 }
 
 namespace postprocess {
@@ -92,16 +109,16 @@ namespace postprocess {
         float2 parameter = in.position.xy;
         
         if (uniform.pointSizeAndCurvilinearPerspective.y > 0) {
-            parameter /= uniform.planesAndframeSize.zw;
+            parameter /= uniform.planesAndFrameSize.zw;
             parameter = fma(parameter, 2, -1);
             float theta = uniform.cameraPositionAndFOV.w / 2;
             float tanT = tan(theta);
-            float tanP = tanT * uniform.planesAndframeSize.z / uniform.planesAndframeSize.w;
+            float tanP = tanT * uniform.planesAndFrameSize.z / uniform.planesAndFrameSize.w;
 
             float R2 = uniform.pointSizeAndCurvilinearPerspective.y == 1 ? length_squared(1 / float2(cos(atan(tanP)), cos(theta))) : 1;
             
             parameter /= sqrt(R2 - length_squared(parameter * float2(tanP, tanT)));
-            parameter = fma(uniform.planesAndframeSize.zw, parameter, uniform.planesAndframeSize.zw) / 2;
+            parameter = fma(uniform.planesAndFrameSize.zw, parameter, uniform.planesAndFrameSize.zw) / 2;
         }
         
         float4 color = frame.sample(p, parameter);

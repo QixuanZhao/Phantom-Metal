@@ -22,6 +22,9 @@ struct FloatPicker: View {
     @State private var dy: Float = 0
     @State private var iconHovering: Bool = false
     
+    @State private var uKnotValue: Float?
+    @State private var vKnotValue: Float?
+    
     var iconColor: Color { iconHovering || !firstDrag ? .secondary : .primary }
     
     private var displayString: String {

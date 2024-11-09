@@ -74,6 +74,8 @@ class BSplineBasis {
         return sum
     }
     
+    var controlPointCount: Int { multiplicitySum - order }
+    
     var indexedKnots: [IndexedKnot] {
         var index = 0
         var result: [IndexedKnot] = []
