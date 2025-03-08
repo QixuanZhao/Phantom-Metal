@@ -445,14 +445,6 @@ struct GuidedSurfaceConstructor: View {
     }
 }
 
-//extension GuidedSurfaceConstructor {
-//    
-//    @Observable
-//    class ViewModel {
-//        
-//    }
-//}
-
 #Preview {
     let drawables = DrawableCollection()
     drawables.insert(key: "What", value: BSplineCurve())

@@ -753,7 +753,7 @@ class BSplineApproximator {
     /// Guides the given surface to the target curve with the error controlled.
     ///
     /// The error control type is _Type1_, which starts from few knots and insert more knots.
-    /// The insertion strategy is refined.
+    /// The insertion strategy is refined. __Determine a single (u,v) by error-weighted averaged parametric coordinates__
     ///
     /// - parameter originalSurface: the original surface (or basic surface) to be guided
     /// - parameter samples: the sample points to which the basic surface is going to be guided
