@@ -684,7 +684,7 @@ class BSplineApproximator {
                         let j = vKnots.firstIndex { $0.value >= v }! - 1
                         
                         uSpansInsertion[i] += 1
-                        vSpansInsertion[i] += 1
+                        vSpansInsertion[j] += 1
                     }
                     
                     blendUKnots = uKnots
