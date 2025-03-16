@@ -15,27 +15,24 @@ extension BSplineBasis.Knot: Identifiable, Equatable {
     var id: Float { value }
 }
 
-//extension CGPoint: @retroactive Hashable {
-//    public func hash(into hasher: inout Hasher) {
-//        hasher.combine(x)
-//        hasher.combine(y)
-//    }
-//}
-
 struct BSplineCurveConstructor: View {
     @Environment(DrawableCollection.self) private var drawables
     
     @State private var showConstructor = false
-    @State private var basis: BSplineBasis = BSplineBasis(degree: 3, 
-                                                          knots: [
-                                                            .init(value: 0, multiplicity: 4),
-                                                            .init(value: 1, multiplicity: 4)
-                                                          ])
+    @State private var basis: BSplineBasis = .init(
+        degree: 3,
+        knots: [
+            .init(value: 0, multiplicity: 4),
+            .init(value: 1, multiplicity: 4)
+        ]
+    )
     
     var knotPanel: some View {
         VStack {
             BSplineBasisKnotEditor(basis: $basis)
-            BSplineBasisChart(basis: basis).frame(height: 300).controlSize(.small)
+            BSplineBasisChart(basis: basis)
+                .frame(height: 300)
+                .controlSize(.small)
             
             Button {
                 var cp: [SIMD4<Float>] = []

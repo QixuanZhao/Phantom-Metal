@@ -9,8 +9,8 @@ import UniformTypeIdentifiers
 import SwiftUI
 
 struct JSONDocument: FileDocument {
-    static var readableContentTypes: [UTType] = [.json]
-    static var writableContentTypes: [UTType] = [.json]
+    static let readableContentTypes: [UTType] = [.json]
+    static let writableContentTypes: [UTType] = [.json]
     
     var json: String = ""
     
@@ -26,19 +26,3 @@ struct JSONDocument: FileDocument {
         FileWrapper(regularFileWithContents: Data(json.utf8))
     }
 }
-
-//struct BSplineSurfaceDocument: FileDocument {
-//    static var readableContentTypes: [UTType] = [.json]
-//    
-//    var json: String = ""
-//    
-//    init(configuration: ReadConfiguration) throws {
-//        if let data = configuration.file.regularFileContents {
-//            self.json = String(decoding: data, as: UTF8.self)
-//        } else { self.json = "{}" }
-//    }
-//    
-//    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-//        FileWrapper(regularFileWithContents: Data(json.utf8))
-//    }
-//}

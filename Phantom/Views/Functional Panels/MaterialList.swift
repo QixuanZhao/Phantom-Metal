@@ -105,7 +105,7 @@ struct MaterialList: View {
             HStack {
                 TextField("Name", text: $newMaterialName).textFieldStyle(.roundedBorder)
                 Button {
-                    let newMeterial = MaterialWrapper(material: system.defaultMaterial)
+                    let newMeterial = MaterialWrapper(material: MetalSystem.shared.defaultMaterial)
                     let uniqueName = materials.uniqueName(name: newMaterialName)
                     newMeterial.id = uniqueName
                     materials.insert(key: uniqueName, value: newMeterial)
@@ -122,7 +122,7 @@ struct MaterialList: View {
 
 #Preview {
     let collection = MaterialCollection()
-    let material = MaterialWrapper(material: system.defaultMaterial)
+    let material = MaterialWrapper(material: MetalSystem.shared.defaultMaterial)
     collection.insert(key: material.id, value: material)
     return ScrollView {
         HStack {

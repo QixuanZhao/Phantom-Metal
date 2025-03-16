@@ -13,8 +13,9 @@ struct SpanSample: Identifiable {
     var samples: [FunctionSample]
 }
 
+@MainActor
 @Observable
-class BSplineBasisReader {
+class BSplineBasisReader: Sendable {
     weak var basis: BSplineBasis?
     
     private(set) var samples: [SpanSample] = []

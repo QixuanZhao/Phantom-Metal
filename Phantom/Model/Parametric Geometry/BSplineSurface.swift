@@ -7,21 +7,22 @@
 
 import Metal
 
+@MainActor
 @Observable
 class BSplineSurface: DrawableBase {
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.vertexDescriptor = Vertex.patchControlPointDescriptor
-        descriptor.vertexFunction = system.library.makeFunction(name: "spline::surfaceShader")
-        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::fragmentShader")
-//        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::patchFragmentShader")
+        descriptor.vertexFunction = MetalSystem.shared.library.makeFunction(name: "spline::surfaceShader")
+        descriptor.fragmentFunction = MetalSystem.shared.library.makeFunction(name: "geometry::fragmentShader")
+//        descriptor.fragmentFunction = MetalSystem.shared.library.makeFunction(name: "geometry::patchFragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = MetalSystem.shared.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
         descriptor.maxTessellationFactor = 64
         descriptor.isTessellationFactorScaleEnabled = false
         descriptor.tessellationControlPointIndexType = .none
@@ -31,14 +32,14 @@ class BSplineSurface: DrawableBase {
         descriptor.tessellationFactorStepFunction = .constant
         descriptor.tessellationOutputWindingOrder = .counterClockwise
         descriptor.label = "Geometry Pass Pipeline State for Surfaces"
-        return try! system.device.makeRenderPipelineState(descriptor: descriptor)
+        return try! MetalSystem.shared.device.makeRenderPipelineState(descriptor: descriptor)
     }()
     
     var uBasis: BSplineBasis
     var vBasis: BSplineBasis
     
-//    var uResolution: Float = 1 / Float((Int(system.width) / 16) * 16)
-//    var vResolution: Float = 1 / Float((Int(system.width) / 16) * 16)
+//    var uResolution: Float = 1 / Float((Int(MetalSystem.shared.width) / 16) * 16)
+//    var vResolution: Float = 1 / Float((Int(MetalSystem.shared.width) / 16) * 16)
     
     var boundingBox: AxisAlignedBoundingBox {
         let initialPoint = controlNet.first!.first!
@@ -87,7 +88,7 @@ class BSplineSurface: DrawableBase {
     var showControlNet: Bool = false
     
     private var tessellationFactorBuffer: MTLBuffer = {
-        let buffer = system.device.makeBuffer(length: MemoryLayout<MTLQuadTessellationFactorsHalf>.size)!
+        let buffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<MTLQuadTessellationFactorsHalf>.size)!
         buffer.label = "B-Spline Surface Tessellation Factor Buffer"
         return buffer
     }()
@@ -108,7 +109,7 @@ class BSplineSurface: DrawableBase {
     func updateBuffer() {
         if requireUpdate {
             let vertices = controlVertices
-            self.controlVertexBuffer = system.device.makeBuffer(bytes: vertices,
+            self.controlVertexBuffer = MetalSystem.shared.device.makeBuffer(bytes: vertices,
                                                                 length: MemoryLayout<Vertex>.stride * vertices.count)
             
             let iControlPointCount = uBasis.multiplicitySum - uBasis.order
@@ -124,8 +125,8 @@ class BSplineSurface: DrawableBase {
                 }
             }
             
-            self.controlLineStripIndexBufferI = system.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * 16)!
-            self.controlLineStripIndexBufferJ = system.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * 16)!
+            self.controlLineStripIndexBufferI = MetalSystem.shared.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * 16)!
+            self.controlLineStripIndexBufferJ = MetalSystem.shared.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * 16)!
             requireUpdate = false
         }
     }
@@ -338,9 +339,11 @@ class BSplineSurface: DrawableBase {
                        baseInstance: Int = 0) {
         
         if requireFactorsFill {
-            Tessellator.fillFactors(buffer: tessellationFactorBuffer,
-                                    edgeFactors: edgeTessellationFactors,
-                                    insideFactors: insideTessellationFactors)
+            Tessellator.fillFactors(
+                buffer: tessellationFactorBuffer,
+                edgeFactors: edgeTessellationFactors,
+                insideFactors: insideTessellationFactors
+            )
             requireFactorsFill = false
         }
         
@@ -413,8 +416,8 @@ class BSplineSurface: DrawableBase {
             }
         }
         
-        self.controlLineStripIndexBufferI = system.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * 16)!
-        self.controlLineStripIndexBufferJ = system.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * 16)!
+        self.controlLineStripIndexBufferI = MetalSystem.shared.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * 16)!
+        self.controlLineStripIndexBufferJ = MetalSystem.shared.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * 16)!
         
         super.init()
         super.name = "B-Spline Surface"

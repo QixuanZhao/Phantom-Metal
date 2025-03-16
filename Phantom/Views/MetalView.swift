@@ -18,7 +18,7 @@ struct MetalView: NSViewRepresentable {
         let view = MTKView()
         view.layer?.wantsExtendedDynamicRangeContent = true
         view.focusRingType = .none
-        view.device = system.device
+        view.device = MetalSystem.shared.device
         view.delegate = renderer
         view.colorPixelFormat = .rgba16Float
         view.colorspace = .init(name: CGColorSpace.displayP3)

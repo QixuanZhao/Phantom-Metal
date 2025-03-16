@@ -7,8 +7,9 @@
 
 import Metal
 
+@MainActor
 @Observable
-class BSplineBasis {
+class BSplineBasis: Sendable {
     var degree: Int {
         didSet {
             if degree < 0 { degree = oldValue }
@@ -31,7 +32,7 @@ class BSplineBasis {
     private(set) var basisTextureDescriptor: MTLTextureDescriptor = {
         let descriptor = MTLTextureDescriptor()
         descriptor.pixelFormat = .rgba32Float
-        descriptor.width = (Int(system.width) / 16) * 16
+        descriptor.width = (Int(MetalSystem.shared.width) / 16) * 16
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.textureType = .type1DArray
         descriptor.arrayLength = 0
@@ -110,23 +111,23 @@ class BSplineBasis {
     private(set) var knotBuffer: MTLBuffer!
     private(set) var basisTextures: [MTLTexture] = []
     static private(set) var computerState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::computeBSplineBasis")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "spline::computeBSplineBasis")!)
     }()
     
     static private(set) var basisCalculatorState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::basisAt")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "spline::basisAt")!)
     }()
     
     static private(set) var derivative1CalculatorState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::firstDerivativeAt")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "spline::firstDerivativeAt")!)
     }()
     
     static private(set) var derivative2CalculatorState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::secondDerivativeAt")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "spline::secondDerivativeAt")!)
     }()
     
     static private(set) var derivative3CalculatorState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "spline::thirdDerivativeAt")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "spline::thirdDerivativeAt")!)
     }()
     
     func multiplicity(of value: Float) -> Int {
@@ -143,7 +144,7 @@ class BSplineBasis {
     
     func updateKnotBuffer() {
         if requireUpdateKnot {
-            knotBuffer = system.device.makeBuffer(bytes: knotVector, length: MemoryLayout<Float>.stride * knotVector.count)
+            knotBuffer = MetalSystem.shared.device.makeBuffer(bytes: knotVector, length: MemoryLayout<Float>.stride * knotVector.count)
             requireUpdateKnot = false
         }
     }
@@ -153,7 +154,7 @@ class BSplineBasis {
             self.basisTextures = []
             basisTextureDescriptor.arrayLength = order
             for i in 1..<knots.count {
-                let texture = system.device.makeTexture(descriptor: basisTextureDescriptor)!
+                let texture = MetalSystem.shared.device.makeTexture(descriptor: basisTextureDescriptor)!
                 texture.label = "B-Spline Basis \(knots[i - 1].value), \(knots[i].value)"
                 self.basisTextures.append(texture)
             }
@@ -164,7 +165,7 @@ class BSplineBasis {
     func updateTexture() {
         if requireUpdateBasis {
             recreateTexture()
-            guard let buffer = system.commandQueue.makeCommandBuffer() else { return }
+            guard let buffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else { return }
             if let splineEncoder = buffer.makeComputeCommandEncoder() {
                 encodeTextureUpdate(splineEncoder)
                 splineEncoder.endEncoding()
@@ -189,7 +190,7 @@ class BSplineBasis {
             encoder.setBuffer(knotBuffer, offset: 0, index: 1)
             
             let threadsPerThreadgroup = MTLSize(width: 16, height: 1, depth: 1)
-            let threadgroupsPerGrid = MTLSize(width: Int(system.width) / 16, height: 1, depth: 1)
+            let threadgroupsPerGrid = MTLSize(width: Int(MetalSystem.shared.width) / 16, height: 1, depth: 1)
             
             for index in 0 ..< knotSpans.count {
                 let interval = knotSpans[index]
@@ -215,12 +216,12 @@ class BSplineBasis {
         self.reader = BSplineBasisReader()
         self.reader.basis = self
         
-        self.argsBuffer = system.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size, options: .storageModeShared)
-        self.knotBuffer = system.device.makeBuffer(bytes: knotVector, length: MemoryLayout<Float>.stride * knots.count, options: .storageModeShared)
+        self.argsBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size, options: .storageModeShared)
+        self.knotBuffer = MetalSystem.shared.device.makeBuffer(bytes: knotVector, length: MemoryLayout<Float>.stride * knots.count, options: .storageModeShared)
         self.basisTextureDescriptor.arrayLength = order
         
         for i in 1..<knots.count {
-            let texture = system.device.makeTexture(descriptor: basisTextureDescriptor)!
+            let texture = MetalSystem.shared.device.makeTexture(descriptor: basisTextureDescriptor)!
             texture.label = "B-Spline Basis \(knots[i - 1].value), \(knots[i].value)"
             self.basisTextures.append(texture)
         }

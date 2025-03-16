@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 class JSONObjectParser {
     static func dump(camera: Camera) -> Data? {
         let data: [String: Any] = [

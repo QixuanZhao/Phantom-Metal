@@ -13,8 +13,9 @@ import SwiftUI
 infix operator +=
 infix operator -=
 
-@Observable 
-class SceneNode: Equatable, Comparable, Hashable, Identifiable {
+@MainActor
+@Observable
+class SceneNode: @preconcurrency Equatable, @preconcurrency Comparable, @preconcurrency Hashable, Identifiable {
     static func < (lhs: SceneNode, rhs: SceneNode) -> Bool { lhs.name < rhs.name }
     static func == (lhs: SceneNode, rhs: SceneNode) -> Bool { lhs.id == rhs.id }
     static func == (lhs: SceneNode, rhs: UUID) -> Bool { lhs.id == rhs }
@@ -81,7 +82,7 @@ class SceneNode: Equatable, Comparable, Hashable, Identifiable {
         self.parent = parent
         self.drawable = drawable
         insertChildren(children)
-        self.modelBuffer = system.device.makeBuffer(length: MemoryLayout<simd_float4x4>.size)
+        self.modelBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<simd_float4x4>.size)
     }
     
     func draw(parentModel: simd_float4x4 = .init(diagonal: .one),
@@ -94,7 +95,7 @@ class SceneNode: Equatable, Comparable, Hashable, Identifiable {
             encoder.setVertexBuffer(modelBuffer, offset: 0, index: BufferPosition.model.rawValue)
             encoder.setTriangleFillMode(fillTriangles ? .fill : .lines)
             if visible, let drawable {
-                if let material { material.set(encoder) } else { defaultMaterialWrapper.set(encoder) }
+                if let material { material.set(encoder) } else { MaterialWrapper.default.set(encoder) }
                 drawable.draw(encoder, instanceCount: 1, baseInstance: 0)
             }
             

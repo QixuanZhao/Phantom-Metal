@@ -30,7 +30,7 @@ struct GuidedSurfaceConstructor: View {
     @State private var targetTolerance: Float = 0.0001
     
     enum ErrorControlType: String {
-        case type1, type1RefinedBatched, type1RefinedSingle, type1Refined, ourMethod
+        case type1EvenBatch, type1RefinedBatched, type1RefinedSingle, type1RefinedMax, ourMethod
     }
     
     @State private var errorControlType: ErrorControlType = .ourMethod
@@ -117,7 +117,7 @@ struct GuidedSurfaceConstructor: View {
         }
     }
     
-    func performGuidanceWithErrorControlType1Refined () {
+    func performGuidanceWithErrorControlType1RefinedMax () {
         guard !selectedCurvesNames.isEmpty,
               let selectedSurfaceName else {
             print("Please select at least a curve and a surface")
@@ -181,7 +181,7 @@ struct GuidedSurfaceConstructor: View {
         }
     }
     
-    func performGuidanceWithErrorControlType1() {
+    func performGuidanceWithErrorControlType1EvenBatch() {
         guard !selectedCurvesNames.isEmpty,
               let selectedSurfaceName else {
             print("Please select at least a curve and a surface")
@@ -383,10 +383,10 @@ struct GuidedSurfaceConstructor: View {
                             }
                             
                             Picker("Error Control Method", selection: $errorControlType) {
-                                Text("Type 1").tag(ErrorControlType.type1)
+                                Text("Type 1 Even Batch").tag(ErrorControlType.type1EvenBatch)
                                 Text("Type 1 Refined (Batch)").tag(ErrorControlType.type1RefinedBatched)
                                 Text("Type 1 Refined (Single)").tag(ErrorControlType.type1RefinedSingle)
-                                Text("Type 1 Refined (Max Only)").tag(ErrorControlType.type1Refined)
+                                Text("Type 1 Refined (Max)").tag(ErrorControlType.type1RefinedMax)
                                 Text("Our Method").tag(ErrorControlType.ourMethod)
                             }
                         } else {
@@ -418,14 +418,14 @@ struct GuidedSurfaceConstructor: View {
                 Button {
                     if errorControl {
                         switch errorControlType {
-                        case .type1:
-                            performGuidanceWithErrorControlType1()
+                        case .type1EvenBatch:
+                            performGuidanceWithErrorControlType1EvenBatch()
                         case .type1RefinedBatched:
                             performGuidanceWithErrorControlType1RefinedBatched()
                         case .type1RefinedSingle:
                             performGuidanceWithErrorControlType1RefinedSingle()
-                        case .type1Refined:
-                            performGuidanceWithErrorControlType1Refined()
+                        case .type1RefinedMax:
+                            performGuidanceWithErrorControlType1RefinedMax()
                         case .ourMethod:
                             performGuidanceWithOurErrorControl()
                         }

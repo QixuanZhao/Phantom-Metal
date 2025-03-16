@@ -48,6 +48,8 @@ struct PointsToSurfaceProjectorView: View {
 }
 
 extension PointsToSurfaceProjectorView {
+    
+    @MainActor
     @Observable
     class ViewModel {
         let drawables: DrawableCollection

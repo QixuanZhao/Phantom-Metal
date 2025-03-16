@@ -7,8 +7,9 @@
 
 import Metal
 
+@MainActor
 @Observable
-class BernsteinBasis {
+class BernsteinBasis: Sendable {
     var degree: Int {
         didSet {
             requireRecreateBasisTexture = true
@@ -22,7 +23,7 @@ class BernsteinBasis {
     private(set) var basisTextureDescriptor: MTLTextureDescriptor = {
         let descriptor = MTLTextureDescriptor()
         descriptor.pixelFormat = .rg32Float
-        descriptor.width = (Int(system.width) / 16) * 16
+        descriptor.width = (Int(MetalSystem.shared.width) / 16) * 16
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.textureType = .type1DArray
         descriptor.arrayLength = 0
@@ -34,13 +35,13 @@ class BernsteinBasis {
     private(set) var knotBuffer: MTLBuffer!
     private(set) var basisTexture: MTLTexture!
     static private var computerState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "bernstein::computeBernsteinBasis")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "bernstein::computeBernsteinBasis")!)
     }()
     
     func recreateTexture () {
         if requireRecreateBasisTexture {
             basisTextureDescriptor.arrayLength = degree + 1
-            self.basisTexture = system.device.makeTexture(descriptor: basisTextureDescriptor)!
+            self.basisTexture = MetalSystem.shared.device.makeTexture(descriptor: basisTextureDescriptor)!
             self.basisTexture.label = "Bernstein Basis"
             updateTexture()
             requireRecreateBasisTexture = false
@@ -49,10 +50,10 @@ class BernsteinBasis {
     
     func updateTexture() {
         if requireRecreateBasisTexture {
-            guard let buffer = system.commandQueue.makeCommandBuffer() else { return }
+            guard let buffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else { return }
             if let encoder = buffer.makeComputeCommandEncoder() {
                 let threadsPerThreadgroup = MTLSize(width: 16, height: 1, depth: 1)
-                let threadgroupsPerGrid = MTLSize(width: Int(system.width) / 16, height: 1, depth: 1)
+                let threadgroupsPerGrid = MTLSize(width: Int(MetalSystem.shared.width) / 16, height: 1, depth: 1)
                 
                 encoder.setComputePipelineState(Self.computerState)
                 encoder.setTexture(basisTexture, index: 0)

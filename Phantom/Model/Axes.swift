@@ -7,6 +7,7 @@
 
 import Metal
 
+@MainActor
 class Axes {
     static private let vertices: [Vertex] = [
         Vertex(position: [0, 0, 0], color: [1, 0, 0, 1]),
@@ -20,23 +21,23 @@ class Axes {
     ]
     
     static private var vertexBuffer: MTLBuffer? = {
-        system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
+        MetalSystem.shared.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
     }()
     
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.vertexDescriptor = Vertex.descriptor
-        descriptor.vertexFunction = system.library.makeFunction(name: "geometry::vertexShader")
-        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::lineFragmentShader")
+        descriptor.vertexFunction = MetalSystem.shared.library.makeFunction(name: "geometry::vertexShader")
+        descriptor.fragmentFunction = MetalSystem.shared.library.makeFunction(name: "geometry::lineFragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = MetalSystem.shared.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
         descriptor.label = "Geometry Pass Pipeline State for Lines"
-        return try! system.device.makeRenderPipelineState(descriptor: descriptor)
+        return try! MetalSystem.shared.device.makeRenderPipelineState(descriptor: descriptor)
     }()
     
     static func draw(_ encoder: MTLRenderCommandEncoder,

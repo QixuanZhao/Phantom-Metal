@@ -7,16 +7,18 @@
 
 import Metal
 
+@MainActor
 class Tessellator {
     static var factorComputeState: MTLComputePipelineState = {
-        try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "tessellation::computeTessellationFactors")!)
+        try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "tessellation::computeTessellationFactors")!)
     }()
     
-    static func fillFactors(buffer: MTLBuffer,
-                                        edgeFactors: SIMD4<Float>,
-                                        insideFactors: SIMD2<Float>,
-                                        completeHandler: @escaping () -> Void = { }) {
-        if let commandBuffer = system.commandQueue.makeCommandBuffer() {
+    static func fillFactors(
+        buffer: MTLBuffer,
+        edgeFactors: SIMD4<Float>,
+        insideFactors: SIMD2<Float>
+    ) {
+        if let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() {
             if let encoder = commandBuffer.makeComputeCommandEncoder() {
                 encoder.setComputePipelineState(factorComputeState)
                 encoder.setBuffer(buffer, offset: 0, index: 0)
@@ -25,7 +27,6 @@ class Tessellator {
                 encoder.dispatchThreadgroups(MTLSizeMake(1, 1, 1),
                                              threadsPerThreadgroup: MTLSizeMake(1, 1, 1))
                 encoder.endEncoding()
-                commandBuffer.addCompletedHandler { _ in completeHandler() }
             }
             commandBuffer.commit()
         }

@@ -87,17 +87,18 @@ extension BSplineBasis {
     }
 }
 
+@MainActor
 class BSplineApproximator {
     static private var surfaceMatrixFillerState: MTLComputePipelineState = {
-        return try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "surfaceFiller")!)
+        return try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "surfaceFiller")!)
     }()
     
     static private var uIsoCurveConstraintFiller: MTLComputePipelineState = {
-        return try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "uIsoCurveConstraintFiller")!)
+        return try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "uIsoCurveConstraintFiller")!)
     }()
     
     static private var vIsoCurveConstraintFiller: MTLComputePipelineState = {
-        return try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "vIsoCurveConstraintFiller")!)
+        return try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "vIsoCurveConstraintFiller")!)
     }()
     
     struct GuidanceResult {
@@ -196,14 +197,14 @@ class BSplineApproximator {
         for i in 0..<samples.count {
             weights[i * samples.count + i] = samples[i].2
         }
-        let WBuffer = system.device.makeBuffer(bytes: weights, length: weights.count * MemoryLayout<Float>.stride)!
+        let WBuffer = MetalSystem.shared.device.makeBuffer(bytes: weights, length: weights.count * MemoryLayout<Float>.stride)!
         let W = MPSMatrix(buffer: WBuffer,
                           descriptor: MPSMatrixDescriptor(rows: samples.count,
                                                           columns: samples.count,
                                                           rowBytes: samples.count * 4,
                                                           dataType: .float32))
         
-        let N = MPSMatrix(device: system.device,
+        let N = MPSMatrix(device: MetalSystem.shared.device,
                           descriptor: MPSMatrixDescriptor(rows: samples.count,
                                                           columns: controlPointCount,
                                                           rowBytes: controlPointCount * 4,
@@ -244,7 +245,7 @@ class BSplineApproximator {
         }
         
         let MData = equations.flatMap { $0 }
-        let MBuffer = system.device.makeBuffer(bytes: MData, length: MData.count * MemoryLayout<Float>.stride)!
+        let MBuffer = MetalSystem.shared.device.makeBuffer(bytes: MData, length: MData.count * MemoryLayout<Float>.stride)!
         
         let M = MPSMatrix(buffer: MBuffer,
                           descriptor: MPSMatrixDescriptor(rows: MRows,
@@ -254,8 +255,10 @@ class BSplineApproximator {
         M.data.label = "M matrix"
         
         let SData = samples.map { [$0.1.x, $0.1.y, $0.1.z] }.flatMap { $0 }
-        let SBuffer = system.device.makeBuffer(bytes: SData,
-                                               length: SData.count * MemoryLayout<Float>.stride)!
+        let SBuffer = MetalSystem.shared.device.makeBuffer(
+            bytes: SData,
+            length: SData.count * MemoryLayout<Float>.stride
+        )!
         SBuffer.label = "S Buffer"
         let S = MPSMatrix(buffer: SBuffer,
                           descriptor: MPSMatrixDescriptor(rows: samples.count,
@@ -265,7 +268,7 @@ class BSplineApproximator {
         
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
-        captureDescriptor.captureObject = system.device
+        captureDescriptor.captureObject = MetalSystem.shared.device
         
 #if false
         do {
@@ -275,9 +278,21 @@ class BSplineApproximator {
         }
 #endif
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             return .failure(MetalError.cannotMakeCommandBuffer)
         }
+        
+        let sampleUData = samples.map { $0.0.u }
+        let sampleVDate = samples.map { $0.0.v }
+        guard let sampleUBuffer = MetalSystem.shared.device.makeBuffer(
+            bytes: sampleUData,
+            length: MemoryLayout<Float>.stride * samples.count
+        ) else { return .failure(MetalError.cannotMakeBuffer) }
+        
+        guard let sampleVBuffer = MetalSystem.shared.device.makeBuffer(
+            bytes: sampleVDate,
+            length: MemoryLayout<Float>.stride * samples.count
+        ) else { return .failure(MetalError.cannotMakeBuffer) }
         
         guard let encoder = commandBuffer.makeComputeCommandEncoder() else {
             return .failure(MetalError.cannotMakeComputeCommandEncoder)
@@ -298,8 +313,10 @@ class BSplineApproximator {
                          length: MemoryLayout<Int32>.size,
                          index: 4)
         encoder.setBuffer(N.data, offset: 0, index: 5)
-        encoder.setBytes(samples.map { $0.0.x }, length: MemoryLayout<Float>.stride * samples.count, index: 6)
-        encoder.setBytes(samples.map { $0.0.y }, length: MemoryLayout<Float>.stride * samples.count, index: 7)
+        encoder.setBuffer(sampleUBuffer, offset: 0, index: 6)
+        encoder.setBuffer(sampleVBuffer, offset: 0, index: 7)
+//        encoder.setBytes(samples.map { $0.0.x }, length: MemoryLayout<Float>.stride * samples.count, index: 6)
+//        encoder.setBytes(samples.map { $0.0.y }, length: MemoryLayout<Float>.stride * samples.count, index: 7)
         encoder.dispatchThreadgroups(MTLSizeMake(samples.count, 1, 1),
                                      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
         
@@ -557,10 +574,10 @@ class BSplineApproximator {
         let endV = blendVKnots[maxJ + 1].value
         let midV = (startV + endV) / 2
         
-        let currentExceptionSet = currentErrorSet.filter { item in
-            let u = item.0.x
-            let v = item.0.y
-            let e = item.1
+        let currentExceptionSet = currentErrorSet.filter { (uv, error) in
+            let u = uv.x
+            let v = uv.y
+            let e = error
             return e > tolerance && startU <= u && u <= endU && startV <= v && v <= endV
         }
         
@@ -568,14 +585,8 @@ class BSplineApproximator {
         var errorSum: Float = 0
         currentExceptionSet.forEach { errorSum += $0.1 }
         
-        currentExceptionSet.forEach {
-            let uv = $0.0
-//            let u = uv.x
-//            let v = uv.y
-            
-            let error = $0.1
+        currentExceptionSet.forEach { (uv, error) in
             let weight = error / errorSum
-            
             weightedAveragePos += weight * uv
         }
         
@@ -607,17 +618,14 @@ class BSplineApproximator {
         tolerance: Float = 0.1
     ) -> Result<GuidanceResult, Error> {
         let surface = originalSurface
-        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map {
-            ($0.0, $0.1 - surface.point(at: $0.0)!)
+        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map { (uv, xyz) in
+            (uv, xyz - surface.point(at: uv)!)
         }
         
         let sampleError: [Float] = sampleDeviation.map { length($0.1) }
         guard let maxError = sampleError.max() else {
             return .failure(PhantomError.unknown("No sample specified."))
         }
-        
-        let p = originalSurface.uBasis.degree
-        let q = originalSurface.vBasis.degree
         
         if maxError < tolerance {
             return .success(GuidanceResult(originalSurface: originalSurface,
@@ -626,15 +634,12 @@ class BSplineApproximator {
                                            maxError: maxError))
         }
         
+        let p = originalSurface.uBasis.degree
+        let q = originalSurface.vBasis.degree
+        
         var currentMaxError = maxError
-        
-        var innerIsoU = isoU
-        var innerIsoV = isoV
-        
-        innerIsoU.removeFirst()
-        innerIsoU.removeLast()
-        innerIsoV.removeFirst()
-        innerIsoV.removeLast()
+        let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
+        let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
@@ -642,6 +647,7 @@ class BSplineApproximator {
         let uKnots = blendUKnots
         let vKnots = blendVKnots
         
+        /// number of knots to be inserted in each span
         var uSpansInsertion: [Int] = .init(repeating: 0, count: uKnots.count - 1)
         var vSpansInsertion: [Int] = .init(repeating: 0, count: vKnots.count - 1)
         
@@ -661,29 +667,24 @@ class BSplineApproximator {
             
             switch devResult {
             case .success(let ds):
-                let currentSampleDeviation = sampleDeviation.map { ($0.0, $0.1 - ds.point(at: $0.0)!) }
-                let currentSampleError = currentSampleDeviation.map { ($0.0, length($0.1)) }
+                let currentSampleDeviation = sampleDeviation.map { (uv, dxyz) in (uv, dxyz - ds.point(at: uv)!) }
+                let currentSampleError = currentSampleDeviation.map { (uv, dxyz) in (uv, length(dxyz)) }
                 let currentMaxErrorItem = currentSampleError.max { $0.1 < $1.1 }!
                 currentMaxError = currentMaxErrorItem.1
                 
                 print("max error: \(currentMaxError) at iteration \(iterationCount)")
                 
-                if currentMaxError > tolerance {
-                    var uSpansInsertionFlag: [Bool] = .init(repeating: false, count: uSpansInsertion.count)
-                    var vSpansInsertionFlag: [Bool] = .init(repeating: false, count: vSpansInsertion.count)
+                if currentMaxError > tolerance {let currentExceptionalSamples = currentSampleError.filter { $0.1 > tolerance }
                     
-                    let currentExceptionalSamples = currentSampleError.filter { $0.1 > tolerance }
-                    
-                    currentExceptionalSamples.forEach {
-                        let uv = $0.0
-                        let u = uv.x
-                        let v = uv.y
+                    currentExceptionalSamples.forEach { (uv, _) in
+                        let u = uv.u
+                        let v = uv.v
                         
                         let i = uKnots.firstIndex { $0.value >= u }! - 1
                         let j = vKnots.firstIndex { $0.value >= v }! - 1
                         
-                        uSpansInsertionFlag[i] = true
-                        vSpansInsertionFlag[j] = true
+                        uSpansInsertion[i] += 1
+                        vSpansInsertion[i] += 1
                     }
                     
                     blendUKnots = uKnots
@@ -693,32 +694,26 @@ class BSplineApproximator {
                         let start = blendUKnots[i].value
                         let end = blendUKnots[i + 1].value
                         
-                        if uSpansInsertionFlag[i] { uSpansInsertion[i] += 1 }
                         let count = uSpansInsertion[i]
                         if count <= 0 { continue }
                         
-                        let intervalLength = (end - start) / Float(count + 1)
+                        let knots = Float.sample(in: start ..< end, count: count, inclusive: false)
+                            .map { BSplineBasis.Knot(value: $0, multiplicity: 1) }
                         
-                        for k in 0..<count {
-                            let knot = end - Float(k + 1) * intervalLength
-                            blendUKnots.insert(.init(value: knot, multiplicity: 1), at: i + 1)
-                        }
+                        blendUKnots.insert(contentsOf: knots, at: i + 1)
                     }
                     
                     for j in (0..<vSpansInsertion.count).reversed() {
                         let start = blendVKnots[j].value
                         let end = blendVKnots[j + 1].value
                         
-                        if vSpansInsertionFlag[j] { vSpansInsertion[j] += 1 }
                         let count = vSpansInsertion[j]
                         if count <= 0 { continue }
                         
-                        let intervalLength = (end - start) / Float(count + 1)
+                        let knots = Float.sample(in: start ..< end, count: count, inclusive: false)
+                            .map { BSplineBasis.Knot(value: $0, multiplicity: 1) }
                         
-                        for k in 0..<count {
-                            let knot = end - Float(k + 1) * intervalLength
-                            blendVKnots.insert(.init(value: knot, multiplicity: 1), at: j + 1)
-                        }
+                        blendVKnots.insert(contentsOf: knots, at: j + 1)
                     }
                 } else {
                     currentDeviationSurface = ds
@@ -727,6 +722,7 @@ class BSplineApproximator {
                 return .failure(error)
             }
         }
+        
         guard let currentDeviationSurface else { return .failure(PhantomError.unknown("Deviation surface is not generated.")) }
         let compatibleSurfaces = BSplineInterpolator.makeCompatible([currentDeviationSurface, surface])
         
@@ -770,17 +766,14 @@ class BSplineApproximator {
         tolerance: Float = 0.1
     ) -> Result<GuidanceResult, Error> {
         let surface = originalSurface
-        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map {
-            ($0.0, $0.1 - surface.point(at: $0.0)!)
+        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map { (uv, xyz) in
+            (uv, xyz - surface.point(at: uv)!)
         }
         
         let sampleError: [Float] = sampleDeviation.map { length($0.1) }
         guard let maxError = sampleError.max() else {
             return .failure(PhantomError.unknown("No sample specified."))
         }
-        
-        let p = originalSurface.uBasis.degree
-        let q = originalSurface.vBasis.degree
         
         if maxError < tolerance {
             return .success(GuidanceResult(originalSurface: originalSurface,
@@ -789,15 +782,13 @@ class BSplineApproximator {
                                            maxError: maxError))
         }
         
+        let p = originalSurface.uBasis.degree
+        let q = originalSurface.vBasis.degree
+        
         var currentMaxError = maxError
         
-        var innerIsoU = isoU
-        var innerIsoV = isoV
-        
-        innerIsoU.removeFirst()
-        innerIsoU.removeLast()
-        innerIsoV.removeFirst()
-        innerIsoV.removeLast()
+        let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
+        let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
@@ -818,16 +809,16 @@ class BSplineApproximator {
             
             switch devResult {
             case .success(let ds):
-                let currentSampleDeviation = sampleDeviation.map { ($0.0, $0.1 - ds.point(at: $0.0)!) }
-                let currentSampleError = currentSampleDeviation.map { ($0.0, length($0.1)) }
+                let currentSampleDeviation = sampleDeviation.map { (uv, dxyz) in (uv, dxyz - ds.point(at: uv)!) }
+                let currentSampleError = currentSampleDeviation.map { (uv, dxyz) in (uv, length(dxyz)) }
                 let currentMaxErrorItem = currentSampleError.max { $0.1 < $1.1 }!
                 currentMaxError = currentMaxErrorItem.1
                 
                 print("max error: \(currentMaxError) at iteration \(iterationCount)")
                 
                 if currentMaxError > tolerance {
-                    let maxErrorU = currentMaxErrorItem.0.x
-                    let maxErrorV = currentMaxErrorItem.0.y
+                    let maxErrorU = currentMaxErrorItem.0.u
+                    let maxErrorV = currentMaxErrorItem.0.v
                     
                     let maxErrorI = blendUKnots.firstIndex { $0.value >= maxErrorU }! - 1
                     let maxErrorJ = blendVKnots.firstIndex { $0.value >= maxErrorV }! - 1
@@ -840,24 +831,24 @@ class BSplineApproximator {
                     let endV = blendVKnots[maxErrorJ + 1].value
                     let midV = (startV + endV) / 2
                     
-                    let currentExceptionalSamples = currentSampleError.filter { sampleError in
-                        let u = sampleError.0.x
-                        let v = sampleError.0.y
-                        let e = sampleError.1
+                    let currentExceptionalSamples = currentSampleError.filter { (uv, e) in
+                        let u = uv.u
+                        let v = uv.v
                         return e > tolerance && startU <= u && u <= endU && startV <= v && v <= endV
                     }
                 
-                    var weightedAveragePos: SIMD2<Float> = .zero
-                    var errorSum: Float = 0
-                    currentExceptionalSamples.forEach { errorSum += $0.1 }
-                    
-                    currentExceptionalSamples.forEach {
-                        let uv = $0.0
-                        let error = $0.1
-                        let weight = error / errorSum
-                        weightedAveragePos += weight * uv
+                    let errorSum: Float = currentExceptionalSamples.reduce(into: 0) { result, item in
+                        result += item.1
                     }
                     
+                    let weightedAveragePos: SIMD2<Float> = currentExceptionalSamples.reduce(into: .zero) { result, item in
+                        let uv = item.0
+                        let error = item.1
+                        let weight = error / errorSum
+                        result += weight * uv
+                    }
+                    
+                    // prevent approaching span ends
                     let uKnot = (weightedAveragePos.x + midU) / 2
                     let vKnot = (weightedAveragePos.y + midV) / 2
                     
@@ -913,17 +904,14 @@ class BSplineApproximator {
         tolerance: Float = 0.1
     ) -> Result<GuidanceResult, Error> {
         let surface = originalSurface
-        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map {
-            ($0.0, $0.1 - surface.point(at: $0.0)!)
+        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map { (uv, xyz) in
+            (uv, xyz - surface.point(at: uv)!)
         }
         
         let sampleError: [Float] = sampleDeviation.map { length($0.1) }
         guard let maxError = sampleError.max() else {
             return .failure(PhantomError.unknown("No sample specified."))
         }
-        
-        let p = originalSurface.uBasis.degree
-        let q = originalSurface.vBasis.degree
         
         if maxError < tolerance {
             return .success(GuidanceResult(originalSurface: originalSurface,
@@ -932,15 +920,13 @@ class BSplineApproximator {
                                            maxError: maxError))
         }
         
+        let p = originalSurface.uBasis.degree
+        let q = originalSurface.vBasis.degree
+        
         var currentMaxError = maxError
         
-        var innerIsoU = isoU
-        var innerIsoV = isoV
-        
-        innerIsoU.removeFirst()
-        innerIsoU.removeLast()
-        innerIsoV.removeFirst()
-        innerIsoV.removeLast()
+        let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
+        let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
@@ -961,8 +947,8 @@ class BSplineApproximator {
             
             switch devResult {
             case .success(let ds):
-                let currentSampleDeviation = sampleDeviation.map { ($0.0, $0.1 - ds.point(at: $0.0)!) }
-                let currentSampleError = currentSampleDeviation.map { ($0.0, length($0.1)) }
+                let currentSampleDeviation = sampleDeviation.map { (uv, dxyz) in (uv, dxyz - ds.point(at: uv)!) }
+                let currentSampleError = currentSampleDeviation.map { (uv, dxyz) in (uv, length(dxyz)) }
                 let currentMaxErrorItem = currentSampleError.max { $0.1 < $1.1 }!
                 currentMaxError = currentMaxErrorItem.1
                 
@@ -978,12 +964,9 @@ class BSplineApproximator {
                     var uSpansSamples: [[(Float, Float)]] = .init(repeating: [], count: currentUSpanCount)
                     var vSpansSamples: [[(Float, Float)]] = .init(repeating: [], count: currentVSpanCount)
                     
-                    currentExceptionalSamples.forEach {
-                        let uv = $0.0
-                        let u = uv.x
-                        let v = uv.y
-                        
-                        let error = $0.1
+                    currentExceptionalSamples.forEach { (uv, error) in
+                        let u = uv.u
+                        let v = uv.v
                         
                         let i = blendUKnots.firstIndex { $0.value >= u }! - 1
                         let j = blendVKnots.firstIndex { $0.value >= v }! - 1
@@ -992,8 +975,8 @@ class BSplineApproximator {
                         vSpansSamples[j].append((v, error))
                     }
                     
-                    for i in (0..<currentUSpanCount).reversed() {
-                        if uSpansSamples[i].isEmpty { continue }
+                    uSpansSamples.enumerated().reversed().forEach { (i, samples) in
+                        guard !samples.isEmpty else { return }
                         
                         let start = blendUKnots[i].value
                         let end = blendUKnots[i + 1].value
@@ -1002,10 +985,7 @@ class BSplineApproximator {
                         var weightedAverageU: Float = 0
                         var errorSum: Float = 0
                         
-                        uSpansSamples[i].forEach { sample in
-                            let u = sample.0
-                            let error = sample.1
-                            
+                        samples.forEach { (u, error) in
                             weightedAverageU += error * u
                             errorSum += error
                         }
@@ -1017,8 +997,8 @@ class BSplineApproximator {
                         blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: i + 1)
                     }
                     
-                    for j in (0..<currentVSpanCount).reversed() {
-                        if vSpansSamples[j].isEmpty { continue }
+                    vSpansSamples.enumerated().reversed().forEach { (j, samples) in
+                        guard !samples.isEmpty else { return }
                         
                         let start = blendVKnots[j].value
                         let end = blendVKnots[j + 1].value
@@ -1026,11 +1006,7 @@ class BSplineApproximator {
                         
                         var weightedAverageV: Float = 0
                         var errorSum: Float = 0
-                        
-                        vSpansSamples[j].forEach { sample in
-                            let v = sample.0
-                            let error = sample.1
-                            
+                        samples.forEach { (v, error) in
                             weightedAverageV += error * v
                             errorSum += error
                         }
@@ -1091,17 +1067,14 @@ class BSplineApproximator {
         tolerance: Float = 0.1
     ) -> Result<GuidanceResult, Error> {
         let surface = originalSurface
-        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map {
-            ($0.0, $0.1 - surface.point(at: $0.0)!)
+        let sampleDeviation: [(SIMD2<Float>, SIMD3<Float>)] = samples.map { (uv, xyz) in
+            (uv, xyz - surface.point(at: uv)!)
         }
         
         let sampleError: [Float] = sampleDeviation.map { length($0.1) }
         guard let maxError = sampleError.max() else {
             return .failure(PhantomError.unknown("No sample specified."))
         }
-        
-        let p = originalSurface.uBasis.degree
-        let q = originalSurface.vBasis.degree
         
         if maxError < tolerance {
             return .success(GuidanceResult(originalSurface: originalSurface,
@@ -1110,15 +1083,13 @@ class BSplineApproximator {
                                            maxError: maxError))
         }
         
+        let p = originalSurface.uBasis.degree
+        let q = originalSurface.vBasis.degree
+        
         var currentMaxError = maxError
         
-        var innerIsoU = isoU
-        var innerIsoV = isoV
-        
-        innerIsoU.removeFirst()
-        innerIsoU.removeLast()
-        innerIsoV.removeFirst()
-        innerIsoV.removeLast()
+        let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
+        let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
@@ -1139,17 +1110,16 @@ class BSplineApproximator {
             
             switch devResult {
             case .success(let ds):
-                let currentSampleDeviation = sampleDeviation.map { ($0.0, $0.1 - ds.point(at: $0.0)!) }
-                let currentSampleError = currentSampleDeviation.map { ($0.0, length($0.1)) }
+                let currentSampleDeviation = sampleDeviation.map { (uv, dxyz) in (uv, dxyz - ds.point(at: uv)!) }
+                let currentSampleError = currentSampleDeviation.map { (uv, dxyz) in (uv, length(dxyz)) }
                 let currentMaxErrorItem = currentSampleError.max { $0.1 < $1.1 }!
-//                let currentExceptionalSamples = currentSampleError.filter { $0.1 > tolerance }
                 currentMaxError = currentMaxErrorItem.1
                 
                 print("max error: \(currentMaxError) at iteration \(iterationCount)")
                 
                 if currentMaxError > tolerance {
-                    let u = currentMaxErrorItem.0.x
-                    let v = currentMaxErrorItem.0.y
+                    let u = currentMaxErrorItem.0.u
+                    let v = currentMaxErrorItem.0.v
                     
                     let i = blendUKnots.firstIndex { $0.value >= u }!
                     let j = blendVKnots.firstIndex { $0.value >= v }!
@@ -1169,6 +1139,7 @@ class BSplineApproximator {
                 return .failure(error)
             }
         }
+        
         guard let currentDeviationSurface else { return .failure(PhantomError.unknown("Deviation surface is not generated.")) }
         let compatibleSurfaces = BSplineInterpolator.makeCompatible([currentDeviationSurface, surface])
         
@@ -1235,13 +1206,8 @@ class BSplineApproximator {
         let p = originalSurface.uBasis.degree
         let q = originalSurface.vBasis.degree
         
-        var innerIsoU = isoU
-        var innerIsoV = isoV
-        
-        innerIsoU.removeFirst()
-        innerIsoU.removeLast()
-        innerIsoV.removeFirst()
-        innerIsoV.removeLast()
+        let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
+        let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
@@ -1252,7 +1218,7 @@ class BSplineApproximator {
         
         repeat {
             iterationNumber += 1
-            /// TODO: iterate
+            // TODO: iterate
             /// その自分を忘れて下さい
             let blendUBasis = BSplineBasis(degree: p, knots: blendUKnots)
             let blendVBasis = BSplineBasis(degree: q, knots: blendVKnots)
@@ -1287,22 +1253,20 @@ class BSplineApproximator {
             
             // [(uv, xyz)]
 //            let startValueCandidates = surface.generateStartValueCandidates()
-            currentSamples = currentSamples.map { sample in
-                let uv = sample.0
-                let xyz = sample.1
-                
+            currentSamples = currentSamples.map { (uv, xyz) in
                 let modifiedUV = modifiedSurface.inverse(
                     xyz,
                     uv0: uv,
                     e1: 1e-6,
                     e2: 1e-6,
-                    maxIteration: 50)
+                    maxIteration: 50
+                )
                 
                 return (modifiedUV, xyz)
             }
             
-            let currentSampleDeviation = currentSamples.map { ($0.0, $0.1 - modifiedSurface.point(at: $0.0)!) }
-            let currentErrorSet = currentSampleDeviation.map { ($0.0, length($0.1)) }
+            let currentSampleDeviation = currentSamples.map { (uv, xyz) in (uv, xyz - modifiedSurface.point(at: uv)!) }
+            let currentErrorSet = currentSampleDeviation.map { (uv, dxyz) in (uv, length(dxyz)) }
             let currentMaxErrorItem = currentErrorSet.max { $0.1 < $1.1 }!
             let currentMaxError = currentMaxErrorItem.1
             
@@ -1315,56 +1279,23 @@ class BSplineApproximator {
                                       maxError: currentMaxError))
             }
             
-            /// check if knot insertion is necessary
+            /// check if knot insertion is necessary by evaluating delta error
             let delta = maxError - currentMaxError
             
             if delta < 0 {
-                /// insert and look back
-//                let maxUV = currentMaxErrorItem.0
-//                let maxI = blendUKnots.firstIndex { $0.value >= maxUV.x }! - 1
-//                let maxJ = blendVKnots.firstIndex { $0.value >= maxUV.y }! - 1
-//                
-//                let startU = blendUKnots[maxI].value
-//                let endU = blendUKnots[maxI + 1].value
-//                let midU = (startU + endU) / 2
-//                
-//                let startV = blendVKnots[maxJ].value
-//                let endV = blendVKnots[maxJ + 1].value
-//                let midV = (startV + endV) / 2
-//                
-//                let currentExceptionSet = currentErrorSet.filter { item in
-//                    let u = item.0.x
-//                    let v = item.0.y
-//                    let e = item.1
-//                    return e > tolerance && startU <= u && u <= endU && startV <= v && v <= endV
-//                }
-//                
-//                var weightedAveragePos: SIMD2<Float> = .zero
-//                var errorSum: Float = 0
-//                currentExceptionSet.forEach { errorSum += $0.1 }
-//                
-//                currentExceptionSet.forEach {
-//                    let uv = $0.0
-//                    let u = uv.x
-//                    let v = uv.y
-//                    
-//                    let error = $0.1
-//                    let weight = error / errorSum
-//                    
-//                    weightedAveragePos += weight * uv
-//                }
                 let newKnots = computeNewKnots(
                     currentErrorSet: currentErrorSet,
                     currentMaxErrorItem: currentMaxErrorItem,
                     tolerance: tolerance,
                     blendUKnots: blendUKnots,
-                    blendVKnots: blendVKnots)
+                    blendVKnots: blendVKnots
+                )
                 
                 let maxI = newKnots.0.x
                 let maxJ = newKnots.0.y
                 
-                let uKnot = newKnots.1.x
-                let vKnot = newKnots.1.y
+                let uKnot = newKnots.1.u
+                let vKnot = newKnots.1.v
                 
                 blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: maxI + 1)
                 blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: maxJ + 1)
@@ -1390,6 +1321,7 @@ class BSplineApproximator {
                 let distance = maxError - tolerance
                 let estimatedFutureStepCount = distance / moment!
                 
+                // estimated to converge in <threshold> steps
                 let threshold: Float = 10
                 if estimatedFutureStepCount > threshold {
                     /// insert knot
@@ -1398,13 +1330,14 @@ class BSplineApproximator {
                         currentMaxErrorItem: currentMaxErrorItem,
                         tolerance: tolerance,
                         blendUKnots: blendUKnots,
-                        blendVKnots: blendVKnots)
+                        blendVKnots: blendVKnots
+                    )
                     
                     let maxI = newKnots.0.x
                     let maxJ = newKnots.0.y
                     
-                    let uKnot = newKnots.1.x
-                    let vKnot = newKnots.1.y
+                    let uKnot = newKnots.1.u
+                    let vKnot = newKnots.1.v
                     
                     blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: maxI + 1)
                     blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: maxJ + 1)
@@ -1437,7 +1370,7 @@ class BSplineApproximator {
         
         let captureManager = MTLCaptureManager.shared()
         let captureDescriptor = MTLCaptureDescriptor()
-        captureDescriptor.captureObject = system.device
+        captureDescriptor.captureObject = MetalSystem.shared.device
         
 #if false
         do {
@@ -1447,14 +1380,14 @@ class BSplineApproximator {
         }
 #endif
         
-        let N = MPSMatrix(device: system.device,
+        let N = MPSMatrix(device: MetalSystem.shared.device,
                           descriptor: MPSMatrixDescriptor(rows: samples.count,
                                                           columns: controlPointCount,
                                                           rowBytes: controlPointCount * 4,
                                                           dataType: .float32))
         N.data.label = "N matrix"
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
@@ -1489,7 +1422,7 @@ class BSplineApproximator {
         commandBuffer.waitUntilCompleted()
         
         let SData = samples.map { [$0.1.x, $0.1.y, $0.1.z] }.flatMap { $0 }
-        let SBuffer = system.device.makeBuffer(bytes: SData,
+        let SBuffer = MetalSystem.shared.device.makeBuffer(bytes: SData,
                                                length: SData.count * MemoryLayout<Float>.stride)!
         SBuffer.label = "S Buffer"
         let S = MPSMatrix(buffer: SBuffer,

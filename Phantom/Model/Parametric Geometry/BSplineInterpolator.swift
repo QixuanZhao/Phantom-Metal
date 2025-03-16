@@ -45,9 +45,10 @@ struct BSplineKernelArgument {
     var knotCount: Int32
 }
 
+@MainActor
 class BSplineInterpolator {
     static private var matrixFillerState: MTLComputePipelineState = {
-        return try! system.device.makeComputePipelineState(function: system.library.makeFunction(name: "curveFiller")!)
+        return try! MetalSystem.shared.device.makeComputePipelineState(function: MetalSystem.shared.library.makeFunction(name: "curveFiller")!)
     }()
     
     static func evaluateParametersByChordLength(for points: [SIMD3<Float>]) -> [Float] {
@@ -170,7 +171,7 @@ class BSplineInterpolator {
         let knots = BSplineBasis.averageKnots(for: parameters, withDegree: degree)
         let blendBasis = BSplineBasis(degree: degree, knots: knots)
         
-        guard MPSSupportsMTLDevice(system.device) else {
+        guard MPSSupportsMTLDevice(MetalSystem.shared.device) else {
             print("MPS not supported on this device")
             throw MetalPerformanceShadersError.mpsNotSupported
         }
@@ -188,18 +189,18 @@ class BSplineInterpolator {
                                               rowBytes: points.count * 4,
                                               dataType: .uInt32)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
         
-        guard let argsBuffer = system.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size,
+        guard let argsBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size,
                                                         options: .storageModeShared) else {
             print("Cannot make argument buffer")
             throw MetalError.cannotMakeBuffer
         }
         
-        guard let sampleBuffer = system.device.makeBuffer(bytes: parameters,
+        guard let sampleBuffer = MetalSystem.shared.device.makeBuffer(bytes: parameters,
                                                           length: MemoryLayout<Float>.stride * parameters.count) else {
             print("Cannot make sample buffer")
             throw MetalError.cannotMakeBuffer
@@ -213,9 +214,9 @@ class BSplineInterpolator {
             throw MetalError.cannotMakeComputeCommandEncoder
         }
         
-        let A = MPSMatrix(device: system.device, descriptor: descriptor)
-        let pivotIndices = MPSMatrix(device: system.device, descriptor: pDescriptor)
-        let decomposer = MPSMatrixDecompositionLU(device: system.device,
+        let A = MPSMatrix(device: MetalSystem.shared.device, descriptor: descriptor)
+        let pivotIndices = MPSMatrix(device: MetalSystem.shared.device, descriptor: pDescriptor)
+        let decomposer = MPSMatrixDecompositionLU(device: MetalSystem.shared.device,
                                                   rows: A.rows,
                                                   columns: A.columns)
         
@@ -235,7 +236,7 @@ class BSplineInterpolator {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
@@ -251,21 +252,21 @@ class BSplineInterpolator {
         
         let B: [Float] = points.map { [$0.x, $0.y, $0.z] }.flatMap { $0 }
         
-        guard let buffer = system.device.makeBuffer(bytes: B,
+        guard let buffer = MetalSystem.shared.device.makeBuffer(bytes: B,
                                                     length: B.count * MemoryLayout<Float>.stride) else {
             print("Cannot make matrix buffer")
             throw MetalError.cannotMakeBuffer
         }
         
         let b = MPSMatrix(buffer: buffer, descriptor: bDescriptor)
-        let solution = MPSMatrix(device: system.device, descriptor: bDescriptor)
+        let solution = MPSMatrix(device: MetalSystem.shared.device, descriptor: bDescriptor)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
         
-        let solver = MPSMatrixSolveLU(device: system.device,
+        let solver = MPSMatrixSolveLU(device: MetalSystem.shared.device,
                                       transpose: false,
                                       order: points.count,
                                       numberOfRightHandSides: 3)
@@ -331,7 +332,7 @@ class BSplineInterpolator {
                      blendParameter: BasisParameter = .v,
                      parameters: [Float],
                      idealDegree: Int = 3) throws -> LoftResult {
-        guard MPSSupportsMTLDevice(system.device) else {
+        guard MPSSupportsMTLDevice(MetalSystem.shared.device) else {
             print("MPS not supported on this device")
             throw MetalPerformanceShadersError.mpsNotSupported
         }
@@ -361,18 +362,18 @@ class BSplineInterpolator {
                                               dataType: .uInt32)
 
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
         
-        guard let argsBuffer = system.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size,
+        guard let argsBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<BSplineKernelArgument>.size,
                                                         options: .storageModeShared) else {
             print("Cannot make argument buffer")
             throw MetalError.cannotMakeBuffer
         }
         
-        guard let sampleBuffer = system.device.makeBuffer(bytes: parameters, 
+        guard let sampleBuffer = MetalSystem.shared.device.makeBuffer(bytes: parameters, 
                                                           length: MemoryLayout<Float>.stride * parameters.count) else {
             print("Cannot make sample buffer")
             throw MetalError.cannotMakeBuffer
@@ -386,9 +387,9 @@ class BSplineInterpolator {
             throw MetalError.cannotMakeComputeCommandEncoder
         }
         
-        let A = MPSMatrix(device: system.device, descriptor: descriptor)
-        let pivotIndices = MPSMatrix(device: system.device, descriptor: pDescriptor)
-        let decomposer = MPSMatrixDecompositionLU(device: system.device,
+        let A = MPSMatrix(device: MetalSystem.shared.device, descriptor: descriptor)
+        let pivotIndices = MPSMatrix(device: MetalSystem.shared.device, descriptor: pDescriptor)
+        let decomposer = MPSMatrixDecompositionLU(device: MetalSystem.shared.device,
                                                   rows: A.rows,
                                                   columns: A.columns)
         
@@ -408,7 +409,7 @@ class BSplineInterpolator {
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
@@ -434,7 +435,7 @@ class BSplineInterpolator {
             }
         }
         for i in 0..<processedSections.first!.controlPoints.count {
-            guard let buffer = system.device.makeBuffer(bytes: B[i],
+            guard let buffer = MetalSystem.shared.device.makeBuffer(bytes: B[i],
                                                         length: B[i].count * MemoryLayout<Float>.stride) else {
                 print("Cannot make matrix buffer")
                 throw MetalError.cannotMakeBuffer
@@ -442,15 +443,15 @@ class BSplineInterpolator {
             
             let matrix = MPSMatrix(buffer: buffer, descriptor: bDescriptor)
             b.append(matrix)
-            solution.append(MPSMatrix(device: system.device, descriptor: bDescriptor))
+            solution.append(MPSMatrix(device: MetalSystem.shared.device, descriptor: bDescriptor))
         }
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             throw MetalError.cannotMakeCommandBuffer
         }
         
-        let solver = MPSMatrixSolveLU(device: system.device,
+        let solver = MPSMatrixSolveLU(device: MetalSystem.shared.device,
                                       transpose: false,
                                       order: processedSections.count,
                                       numberOfRightHandSides: 3)

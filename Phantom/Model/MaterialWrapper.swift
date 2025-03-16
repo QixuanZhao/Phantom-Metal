@@ -8,7 +8,8 @@
 import Foundation
 import Metal
 
-class MaterialWrapper: Identifiable, Equatable {
+@MainActor
+class MaterialWrapper: @preconcurrency Identifiable, @preconcurrency Equatable {
     static func == (lhs: MaterialWrapper, rhs: MaterialWrapper) -> Bool { lhs.id == rhs.id }
     
     var id: String = "Material"
@@ -61,7 +62,7 @@ class MaterialWrapper: Identifiable, Equatable {
     
     init(material: Material) {
         self.material = material
-        self.materialBuffer = system.device.makeBuffer(length: MemoryLayout<Material>.size)
+        self.materialBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Material>.size)
         self.materialBuffer?.contents().storeBytes(of: material, as: Material.self)
     }
     

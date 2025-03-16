@@ -18,7 +18,18 @@ enum MetalError: Error {
  * System properties. (or
  * Application properties.
  */
-struct MetalSystem {
+@MainActor
+class MetalSystem {
+    static let shared = MetalSystem(
+        device: MTLCreateSystemDefaultDevice()!,
+        defaultMaterial: Material(
+            albedoSpecular: [1, 1, 1, 0.9],
+            refractiveIndicesRoughnessU: [1.5, 1.5, 1.5, 0.7],
+            extinctionCoefficentsRoughnessV: [1, 1, 1, 0.7]
+        )
+    )
+
+    
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     let library: MTLLibrary
@@ -60,14 +71,16 @@ struct MetalSystem {
     }
 }
 
-// global system variable(s)
-let system = MetalSystem(device: MTLCreateSystemDefaultDevice()!,
-                         defaultMaterial: Material(albedoSpecular: [1, 1, 1, 0.9],
-                                                   refractiveIndicesRoughnessU: [1.5, 1.5, 1.5, 0.7],
-                                                   extinctionCoefficentsRoughnessV: [1, 1, 1, 0.7])
-)
+//// global system variable(s)
+//let system = MetalSystem(device: MTLCreateSystemDefaultDevice()!,
+//                         defaultMaterial: Material(albedoSpecular: [1, 1, 1, 0.9],
+//                                                   refractiveIndicesRoughnessU: [1.5, 1.5, 1.5, 0.7],
+//                                                   extinctionCoefficentsRoughnessV: [1, 1, 1, 0.7])
+//)
 
-let defaultMaterialWrapper = MaterialWrapper(material: system.defaultMaterial)
+extension MaterialWrapper {
+    static let `default` = MaterialWrapper(material: MetalSystem.shared.defaultMaterial)
+}
 
 enum PhantomError: Error {
     case unknown(String)

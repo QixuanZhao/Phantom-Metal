@@ -38,8 +38,10 @@ struct BézierCurveConstructor: View {
                     
                     Timer.scheduledTimer(withTimeInterval: debounceInterval,
                                          repeats: false) { _ in
-                        if Date.now >= performTimestamp {
-                            basis.recreateTexture()
+                        Task {
+                            if await Date.now >= performTimestamp {
+                                await basis.recreateTexture()
+                            }
                         }
                     }
                 }

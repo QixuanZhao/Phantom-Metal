@@ -8,7 +8,8 @@
 import SwiftUI
 import MetalKit
 
-@Observable 
+@MainActor
+@Observable
 class Renderer: NSObject, MTKViewDelegate {
     var fps: Double = 0.0
     private(set) var startTimestamp: Date!
@@ -44,9 +45,9 @@ class Renderer: NSObject, MTKViewDelegate {
     private var uniformBuffer: MTLBuffer?
     private var lightBuffer: MTLBuffer?
     
-    let postprocessVertexFunction = system.library.makeFunction(name: "postprocess::vertexShader")
-    let postprocessFragmentFunction = system.library.makeFunction(name: "postprocess::fragmentShader")
-    let memorylessFragmentFunction = system.library.makeFunction(name: "memorylessFS")
+    let postprocessVertexFunction = MetalSystem.shared.library.makeFunction(name: "postprocess::vertexShader")
+    let postprocessFragmentFunction = MetalSystem.shared.library.makeFunction(name: "postprocess::fragmentShader")
+    let memorylessFragmentFunction = MetalSystem.shared.library.makeFunction(name: "memorylessFS")
     
     var camera: Camera = Camera()
     var controller: FPSController
@@ -61,7 +62,7 @@ class Renderer: NSObject, MTKViewDelegate {
                           planesAndframeSize: [ 1, 100, 1, 1 ],
                           pointSizeAndCurvilinearPerspective: SIMD4<Float>(20, 0, 0, 0))
     
-    private var semaphore = DispatchSemaphore(value: 3)
+//    private var semaphore = DispatchSemaphore(value: 3)
     
     override init () {
         let camera = Camera()
@@ -73,14 +74,14 @@ class Renderer: NSObject, MTKViewDelegate {
         deferredRenderPipelineDescriptor.vertexFunction = postprocessVertexFunction
         deferredRenderPipelineDescriptor.fragmentFunction = memorylessFragmentFunction
         deferredRenderPipelineDescriptor.depthAttachmentPixelFormat = .depth32Float
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = MetalSystem.shared.hdrTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        deferredRenderPipelineDescriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
         deferredRenderPipelineDescriptor.label = "Deferred Shading Pipeline State"
-        self.deferredPipelineState = try? system.device.makeRenderPipelineState(descriptor: deferredRenderPipelineDescriptor)
+        self.deferredPipelineState = try? MetalSystem.shared.device.makeRenderPipelineState(descriptor: deferredRenderPipelineDescriptor)
         
         let postprocessPipelineDescriptor = MTLRenderPipelineDescriptor()
         postprocessPipelineDescriptor.vertexDescriptor = Vertex.descriptor
@@ -88,24 +89,24 @@ class Renderer: NSObject, MTKViewDelegate {
         postprocessPipelineDescriptor.fragmentFunction = postprocessFragmentFunction
         postprocessPipelineDescriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = .rgba16Float
         postprocessPipelineDescriptor.label = "Post-process Pipeline State"
-        self.postprocessPipelineState = try? system.device.makeRenderPipelineState(descriptor: postprocessPipelineDescriptor)
+        self.postprocessPipelineState = try? MetalSystem.shared.device.makeRenderPipelineState(descriptor: postprocessPipelineDescriptor)
         
         let depthStencilDescriptor = MTLDepthStencilDescriptor()
         depthStencilDescriptor.depthCompareFunction = .lessEqual
         depthStencilDescriptor.isDepthWriteEnabled = true
         depthStencilDescriptor.label = "Depth Stencil State"
-        self.depthStencilState = system.device.makeDepthStencilState(descriptor: depthStencilDescriptor)
+        self.depthStencilState = MetalSystem.shared.device.makeDepthStencilState(descriptor: depthStencilDescriptor)
         
-        uniformBuffer = system.device.makeBuffer(length: MemoryLayout<Uniform>.size, options: .storageModeShared)
-        lightBuffer = system.device.makeBuffer(length: MemoryLayout<Light>.size, options: .storageModeShared)
+        uniformBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Uniform>.size, options: .storageModeShared)
+        lightBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Light>.size, options: .storageModeShared)
         
-        depthTexture = system.device.makeTexture(descriptor: system.depthTextureDescriptor)!
-        positionTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        normalTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        albedoSpecularTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        refractiveIndicesRoughnessUTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        extinctionCoefficentsRoughnessVTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        hdrTexture = system.device.makeTexture(descriptor: system.hdrTextureDescriptor)!
+        depthTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.depthTextureDescriptor)!
+        positionTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        normalTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        albedoSpecularTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        refractiveIndicesRoughnessUTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        extinctionCoefficentsRoughnessVTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        hdrTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.hdrTextureDescriptor)!
         
         super.init()
         
@@ -119,22 +120,22 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     private func recreateTextures(width: Int, height: Int) {
-        system.depthTextureDescriptor.width = width
-        system.depthTextureDescriptor.height = height
+        MetalSystem.shared.depthTextureDescriptor.width = width
+        MetalSystem.shared.depthTextureDescriptor.height = height
         
-        system.geometryTextureDescriptor.width = width
-        system.geometryTextureDescriptor.height = height
+        MetalSystem.shared.geometryTextureDescriptor.width = width
+        MetalSystem.shared.geometryTextureDescriptor.height = height
         
-        system.hdrTextureDescriptor.width = width
-        system.hdrTextureDescriptor.height = height
+        MetalSystem.shared.hdrTextureDescriptor.width = width
+        MetalSystem.shared.hdrTextureDescriptor.height = height
         
-        depthTexture = system.device.makeTexture(descriptor: system.depthTextureDescriptor)!
-        positionTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        normalTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        albedoSpecularTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        refractiveIndicesRoughnessUTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        extinctionCoefficentsRoughnessVTexture = system.device.makeTexture(descriptor: system.geometryTextureDescriptor)!
-        hdrTexture = system.device.makeTexture(descriptor: system.hdrTextureDescriptor)!
+        depthTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.depthTextureDescriptor)!
+        positionTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        normalTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        albedoSpecularTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        refractiveIndicesRoughnessUTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        extinctionCoefficentsRoughnessVTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
+        hdrTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.hdrTextureDescriptor)!
         
         depthTexture.label = "Depth Texture"
         positionTexture.label = "Position Texture"
@@ -185,12 +186,9 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
-        semaphore.wait()
-        
         let currentFrameTimestamp = Date.now
         let timeInterval = currentFrameTimestamp.timeIntervalSince(lastFrameTimestamp)
         lastFrameTimestamp = currentFrameTimestamp
-//        fps = 1.0 / timeInterval
         
         controller.update(Float(timeInterval))
         
@@ -222,11 +220,11 @@ class Renderer: NSObject, MTKViewDelegate {
         
         lightBuffer?.contents().storeBytes(of: light, as: Light.self)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else { return }
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else { return }
         commandBuffer.label = "Command Buffer"
                 
         guard let renderPassEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
-        defaultMaterialWrapper.set(renderPassEncoder)
+        MaterialWrapper.default.set(renderPassEncoder)
         renderPassEncoder.label = "Combined Deferred Render Pass Encoder"
         renderPassEncoder.setDepthStencilState(depthStencilState)
         renderPassEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
@@ -248,7 +246,6 @@ class Renderer: NSObject, MTKViewDelegate {
         postprocessPassEncoder.endEncoding()
         
         commandBuffer.present(drawable)
-        commandBuffer.addCompletedHandler { [weak self] _ in self?.semaphore.signal() }
         commandBuffer.commit() // implies an enqueue() call
     }
 }

@@ -13,8 +13,9 @@ struct FunctionSample: Identifiable {
     var samples: [(Float, Float)]
 }
 
+@MainActor
 @Observable
-class BernsteinBasisReader {
+class BernsteinBasisReader: Sendable {
     weak var basis: BernsteinBasis?
     
     private(set) var samples: [FunctionSample] = []

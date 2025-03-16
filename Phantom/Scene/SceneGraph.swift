@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-@Observable 
+@MainActor
+@Observable
 class SceneGraph {
     var root: SceneNode
     

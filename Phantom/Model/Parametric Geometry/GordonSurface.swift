@@ -9,6 +9,7 @@ import simd
 import Foundation
 import SwiftUI
 
+@MainActor
 class GordonSurface {
     let uSections: [BSplineCurve]
     let vSections: [BSplineCurve]

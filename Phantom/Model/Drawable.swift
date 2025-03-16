@@ -9,34 +9,37 @@ import MetalKit
 import ModelIO
 
 protocol Drawable {
+    @MainActor
     func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) -> Void
 }
 
-class DrawableBase: Drawable, Equatable {
-    static func == (lhs: DrawableBase, rhs: DrawableBase) -> Bool { lhs.name == rhs.name }
-    
+class DrawableBase: Drawable {
     var name: String = ""
     func draw(_ encoder: MTLRenderCommandEncoder, instanceCount: Int, baseInstance: Int) { }
-
-//    var boundingBox: AxisAlignedBoundingBox = .init(diagonalVertices: (.zero, .zero))
-//    func updateBoundingBox() {  }
 }
 
+extension DrawableBase: Equatable {
+    static func == (lhs: DrawableBase, rhs: DrawableBase) -> Bool {
+        lhs.name == rhs.name
+    }
+}
+
+@MainActor
 class Mesh: DrawableBase {
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.vertexDescriptor = Vertex.descriptor
-        descriptor.vertexFunction = system.library.makeFunction(name: "geometry::vertexShader")
-        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::fragmentShader")
+        descriptor.vertexFunction = MetalSystem.shared.library.makeFunction(name: "geometry::vertexShader")
+        descriptor.fragmentFunction = MetalSystem.shared.library.makeFunction(name: "geometry::fragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = MetalSystem.shared.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
         descriptor.label = "Geometry Pass Pipeline State"
-        return try! system.device.makeRenderPipelineState(descriptor: descriptor)
+        return try! MetalSystem.shared.device.makeRenderPipelineState(descriptor: descriptor)
     }()
     
     let mesh: MDLMesh
@@ -44,7 +47,7 @@ class Mesh: DrawableBase {
     
     init(mesh: MDLMesh) throws {
         self.mesh = mesh
-        self.metalKitMesh = try MTKMesh (mesh: mesh, device: system.device)
+        self.metalKitMesh = try MTKMesh (mesh: mesh, device: MetalSystem.shared.device)
         super.init()
         super.name = mesh.name
     }
@@ -68,6 +71,7 @@ class Mesh: DrawableBase {
     }
 }
 
+@MainActor
 class Geometry: DrawableBase {
     let vertices: [Vertex]
     let indices:  [UInt32]?
@@ -81,11 +85,11 @@ class Geometry: DrawableBase {
                   _ indices: [UInt32]?
     ) {
         self.vertices = vertices
-        self.vertexBuffer = system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
+        self.vertexBuffer = MetalSystem.shared.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
         
         self.indices = indices
         if let indices {
-            self.indexBuffer = system.device.makeBuffer(bytes: indices, length: MemoryLayout<UInt32>.stride * indices.count)
+            self.indexBuffer = MetalSystem.shared.device.makeBuffer(bytes: indices, length: MemoryLayout<UInt32>.stride * indices.count)
         }
         super.init()
         super.name = name

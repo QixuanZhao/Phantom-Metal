@@ -1,0 +1,12 @@
+//
+//  module.modulemap
+//  Phantom
+//
+//  Created by TSAR Weasley on 2025/3/16.
+//
+
+module <#ModuleName#> {
+    header "<#Header#>.h"
+
+    export *
+}

@@ -7,22 +7,23 @@
 
 import Metal
 
+@MainActor
 @Observable
 class BézierCurve: DrawableBase {
     static var geometryPassState: MTLRenderPipelineState = {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.vertexDescriptor = Vertex.descriptor
-        descriptor.vertexFunction = system.library.makeFunction(name: "bernstein::bézeirCurveShader")
-        descriptor.fragmentFunction = system.library.makeFunction(name: "geometry::lineFragmentShader")
+        descriptor.vertexFunction = MetalSystem.shared.library.makeFunction(name: "bernstein::bézeirCurveShader")
+        descriptor.fragmentFunction = MetalSystem.shared.library.makeFunction(name: "geometry::lineFragmentShader")
         descriptor.depthAttachmentPixelFormat = .depth32Float
-        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = system.hdrTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
-        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = system.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.color.rawValue].pixelFormat = MetalSystem.shared.hdrTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.position.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.normal.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.albedoSpecular.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.refractiveRoughness1.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
+        descriptor.colorAttachments[ColorAttachment.extinctionRoughness2.rawValue].pixelFormat = MetalSystem.shared.geometryTextureDescriptor.pixelFormat
         descriptor.label = "Geometry Pass Pipeline State for Bézeir Curves"
-        return try! system.device.makeRenderPipelineState(descriptor: descriptor)
+        return try! MetalSystem.shared.device.makeRenderPipelineState(descriptor: descriptor)
     }()
     
     var basis: BernsteinBasis
@@ -61,7 +62,7 @@ class BézierCurve: DrawableBase {
         }
     }
     
-    var resolution: Float = 1 / Float((Int(system.width) / 16) * 16)
+    var resolution: Float = 1 / Float((Int(MetalSystem.shared.width) / 16) * 16)
     
     var segmentVertices: [Vertex] {
         let count = Int(1 / resolution)
@@ -92,9 +93,11 @@ class BézierCurve: DrawableBase {
     
     func updateBuffer() {
         if requireUpdate {
-            self.controlVertexBuffer = system.device.makeBuffer(bytes: controlVertices,
-                                                                length: MemoryLayout<Vertex>.stride * controlPoints.count,
-                                                                options: .storageModeShared)
+            self.controlVertexBuffer = MetalSystem.shared.device.makeBuffer(
+                bytes: controlVertices,
+                length: MemoryLayout<Vertex>.stride * controlPoints.count,
+                options: .storageModeShared
+            )
             requireUpdate = false
         }
     }
@@ -159,7 +162,7 @@ class BézierCurve: DrawableBase {
         super.init()
         super.name = "Bézeir Curve"
         
-        self.controlVertexBuffer = system.device.makeBuffer(bytes: controlVertices, length: MemoryLayout<Vertex>.stride * controlPoints.count, options: .storageModeShared)
-        self.segmentVertexBuffer = system.device.makeBuffer(bytes: segmentVertices, length: segmentVertices.count * MemoryLayout<Vertex>.stride, options: .storageModeShared)
+        self.controlVertexBuffer = MetalSystem.shared.device.makeBuffer(bytes: controlVertices, length: MemoryLayout<Vertex>.stride * controlPoints.count, options: .storageModeShared)
+        self.segmentVertexBuffer = MetalSystem.shared.device.makeBuffer(bytes: segmentVertices, length: segmentVertices.count * MemoryLayout<Vertex>.stride, options: .storageModeShared)
     }
 }

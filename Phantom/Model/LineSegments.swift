@@ -9,6 +9,7 @@ import SwiftUI
 import Metal
 import simd
 
+@MainActor
 class LineSegments: DrawableBase {
     private(set) var segments: [(SIMD3<Float>, SIMD3<Float>)]
     
@@ -32,7 +33,7 @@ class LineSegments: DrawableBase {
     
     private var vertices: [Vertex]
     private lazy var vertexBuffer: MTLBuffer? = {
-        system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
+        MetalSystem.shared.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
     }()
     
     private func updateVertexBufferColor() {
@@ -92,7 +93,7 @@ class LineSegments: DrawableBase {
             }
             passRate = Double(lesserCount) / Double(vertices.count)
         }
-        vertexBuffer = system.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
+        vertexBuffer = MetalSystem.shared.device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count)
     }
     
     func setColorStrategy(_ strategy: ColorStrategy) {

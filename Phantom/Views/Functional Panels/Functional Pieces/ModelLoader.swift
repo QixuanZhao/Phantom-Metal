@@ -26,7 +26,7 @@ struct ModelLoader: View {
                         case "obj":
                             let asset = MDLAsset(url: url,
                                                  vertexDescriptor: Vertex.modelDescriptor,
-                                                 bufferAllocator: MTKMeshBufferAllocator(device: system.device))
+                                                 bufferAllocator: MTKMeshBufferAllocator(device: MetalSystem.shared.device))
                             if asset.count > 0,
                                let mesh = asset.object(at: 0) as? MDLMesh {
                                 do {

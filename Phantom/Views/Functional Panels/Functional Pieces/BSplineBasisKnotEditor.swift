@@ -109,8 +109,9 @@ struct BSplineBasisKnotEditor: View {
                                     Image(systemName: "plus")
                                     Spacer()
                                 }
-                            }.buttonStyle(.bordered)
-                                .disabled(newKnot <= basis.knots.first!.value || newKnot >= basis.knots.last!.value)
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(newKnot <= basis.knots.first!.value || newKnot >= basis.knots.last!.value)
                         }
                     }.width(40)
                 } rows: {
@@ -120,7 +121,8 @@ struct BSplineBasisKnotEditor: View {
                     }
                 }.frame(minHeight: 200)
             }.frame(minHeight: 200)
-        }.controlSize(.small)
+        }
+        .controlSize(.small)
         .onChange(of: innerKnots) {
             var tempKnots = [basis.knots.first!]
             tempKnots.append(contentsOf: innerKnots.sorted(by: { $0.value < $1.value }))
@@ -130,11 +132,15 @@ struct BSplineBasisKnotEditor: View {
             basis.knots[0].multiplicity = basis.degree + 1
             basis.knots[basis.knots.count - 1].multiplicity = basis.degree + 1
         }.onChange(of: basis.knots) {
-            performTimestamp = .now + system.debounceInterval
-            Timer.scheduledTimer(withTimeInterval: system.debounceInterval,
+            performTimestamp = .now + MetalSystem.shared.debounceInterval
+            Timer.scheduledTimer(withTimeInterval: MetalSystem.shared.debounceInterval,
                                  repeats: false) { _ in
-                if Date.now >= performTimestamp {
-                    basis.updateTexture()
+                Task {
+                    await MainActor.run {
+                        if Date.now >= performTimestamp {
+                            basis.updateTexture()
+                        }
+                    }
                 }
             }
         }

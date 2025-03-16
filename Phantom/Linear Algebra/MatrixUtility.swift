@@ -7,20 +7,21 @@
 
 import MetalPerformanceShaders
 
+@MainActor
 class MatrixUtility {
     
     static func copy(matrix: MPSMatrix, label: String? = nil) throws -> MPSMatrix {
-        let copier = MPSMatrixCopy(device: system.device,
+        let copier = MPSMatrixCopy(device: MetalSystem.shared.device,
                                    copyRows: matrix.rows,
                                    copyColumns: matrix.columns,
                                    sourcesAreTransposed: false,
                                    destinationsAreTransposed: false)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             throw PhantomError.unknown("Cannot create command buffer")
         }
         
-        let destination = MPSMatrix(device: system.device,
+        let destination = MPSMatrix(device: MetalSystem.shared.device,
                                     descriptor: MPSMatrixDescriptor(rows: matrix.rows, columns: matrix.columns, rowBytes: matrix.rowBytes, dataType: matrix.dataType))
         destination.data.label = label
         copier.encode(commandBuffer: commandBuffer,
@@ -52,7 +53,7 @@ class MatrixUtility {
         guard ripeARows == C.rows else { return false }
         guard ripeBColumns == C.columns else { return false }
         
-        let multiplication = MPSMatrixMultiplication(device: system.device,
+        let multiplication = MPSMatrixMultiplication(device: MetalSystem.shared.device,
                                                      transposeLeft: transposeA,
                                                      transposeRight: transposeB,
                                                      resultRows: C.rows,
@@ -61,7 +62,7 @@ class MatrixUtility {
                                                      alpha: alpha,
                                                      beta: beta)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else { return false }
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else { return false }
         commandBuffer.label = commandBufferLabel
         
         multiplication.encode(commandBuffer: commandBuffer,
@@ -90,14 +91,14 @@ class MatrixUtility {
         
         let innerColumns = innerColumnsFromLhs
         
-        let result = MPSMatrix(device: system.device,
+        let result = MPSMatrix(device: MetalSystem.shared.device,
                                descriptor: MPSMatrixDescriptor(rows: resultMatrixRows,
                                                                columns: resultMatrixColumns,
                                                                rowBytes: resultMatrixColumns * 4,
                                                                dataType: .float32))
         result.data.label = resultMatrixLabel
         
-        let multiplication = MPSMatrixMultiplication(device: system.device,
+        let multiplication = MPSMatrixMultiplication(device: MetalSystem.shared.device,
                                                      transposeLeft: transposeLhs,
                                                      transposeRight: transposeRhs,
                                                      resultRows: resultMatrixRows,
@@ -105,7 +106,7 @@ class MatrixUtility {
                                                      interiorColumns: innerColumns,
                                                      alpha: 1, beta: 0)
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
@@ -132,14 +133,14 @@ class MatrixUtility {
         guard matrix.rows == b.rows else { return nil }
         guard matrix.rows == matrix.columns else { return nil }
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
         commandBuffer.label = commandBufferLabel
         
         let order = matrix.rows
-        let decomposer = MPSMatrixDecompositionCholesky(device: system.device, lower: false, order: order)
+        let decomposer = MPSMatrixDecompositionCholesky(device: MetalSystem.shared.device, lower: false, order: order)
         decomposer.encode(commandBuffer: commandBuffer,
                           sourceMatrix: matrix,
                           resultMatrix: decompositionResult,
@@ -162,7 +163,7 @@ class MatrixUtility {
         guard matrix.rows == b.rows else { return nil }
         guard matrix.rows == matrix.columns else { return nil }
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
@@ -170,27 +171,27 @@ class MatrixUtility {
         
         let order = matrix.rows
         
-        let decompositionResult = MPSMatrix(device: system.device,
+        let decompositionResult = MPSMatrix(device: MetalSystem.shared.device,
                                             descriptor: MPSMatrixDescriptor(rows: matrix.rows,
                                                                             columns: matrix.columns,
                                                                             rowBytes: matrix.rowBytes,
                                                                             dataType: matrix.dataType))
         
-        let decomposer = MPSMatrixDecompositionCholesky(device: system.device, lower: false, order: order)
-        let decompositionStatus = system.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
+        let decomposer = MPSMatrixDecompositionCholesky(device: MetalSystem.shared.device, lower: false, order: order)
+        let decompositionStatus = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
         decomposer.encode(commandBuffer: commandBuffer,
                           sourceMatrix: matrix,
                           resultMatrix: decompositionResult,
                           status: decompositionStatus)
         
-        let solution = MPSMatrix(device: system.device,
+        let solution = MPSMatrix(device: MetalSystem.shared.device,
                                  descriptor: MPSMatrixDescriptor(rows: b.rows,
                                                                  columns: b.columns,
                                                                  rowBytes: b.rowBytes,
                                                                  dataType: b.dataType))
         solution.data.label = resultMatrixLabel
         
-        let solver = MPSMatrixSolveCholesky(device: system.device,
+        let solver = MPSMatrixSolveCholesky(device: MetalSystem.shared.device,
                                             upper: true,
                                             order: order,
                                             numberOfRightHandSides: b.columns)
@@ -221,7 +222,7 @@ class MatrixUtility {
                       commandBufferLabel: String? = nil) -> MPSMatrix? {
         guard matrix.rows == b.rows else { return nil }
         guard matrix.rows == matrix.columns else { return nil }
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
@@ -229,33 +230,33 @@ class MatrixUtility {
         
         let order = matrix.rows
         
-        let decomposedResultMatrix = MPSMatrix(device: system.device,
+        let decomposedResultMatrix = MPSMatrix(device: MetalSystem.shared.device,
                                                descriptor: MPSMatrixDescriptor(rows: order,
                                                                                columns: order,
                                                                                rowBytes: order * 4,
                                                                                dataType: .float32))
-        let pivotIndices = MPSMatrix(device: system.device,
+        let pivotIndices = MPSMatrix(device: MetalSystem.shared.device,
                                      descriptor: MPSMatrixDescriptor(rows: 1,
                                                                      columns: order,
                                                                      rowBytes: order * 4,
                                                                      dataType: .uInt32))
         
-        let decomposer = MPSMatrixDecompositionLU(device: system.device, rows: order, columns: order)
-        let decompositionStatus = system.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
+        let decomposer = MPSMatrixDecompositionLU(device: MetalSystem.shared.device, rows: order, columns: order)
+        let decompositionStatus = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
         decomposer.encode(commandBuffer: commandBuffer,
                           sourceMatrix: matrix,
                           resultMatrix: decomposedResultMatrix,
                           pivotIndices: pivotIndices,
                           info: decompositionStatus)
         
-        let solution = MPSMatrix(device: system.device,
+        let solution = MPSMatrix(device: MetalSystem.shared.device,
                                  descriptor: MPSMatrixDescriptor(rows: order,
                                                                  columns: b.columns,
                                                                  rowBytes: b.columns * 4,
                                                                  dataType: .float32))
         solution.data.label = resultMatrixLabel
 
-        let solver = MPSMatrixSolveLU(device: system.device,
+        let solver = MPSMatrixSolveLU(device: MetalSystem.shared.device,
                                       transpose: false,
                                       order: order,
                                       numberOfRightHandSides: b.columns)
@@ -288,26 +289,26 @@ class MatrixUtility {
                         commandBufferLabel: String? = nil) -> MPSMatrix? {
         guard matrix.rows == matrix.columns else { return nil }
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
         commandBuffer.label = commandBufferLabel
         
         let order = matrix.rows
-        let decomposedResultMatrix = MPSMatrix(device: system.device,
+        let decomposedResultMatrix = MPSMatrix(device: MetalSystem.shared.device,
                                                descriptor: MPSMatrixDescriptor(rows: order,
                                                                                columns: order,
                                                                                rowBytes: order * 4,
                                                                                dataType: .float32))
-        let pivotIndices = MPSMatrix(device: system.device,
+        let pivotIndices = MPSMatrix(device: MetalSystem.shared.device,
                                      descriptor: MPSMatrixDescriptor(rows: 1,
                                                                      columns: order,
                                                                      rowBytes: order * 4,
                                                                      dataType: .uInt32))
         
-        let decomposer = MPSMatrixDecompositionLU(device: system.device, rows: order, columns: order)
-        let decompositionStatus = system.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
+        let decomposer = MPSMatrixDecompositionLU(device: MetalSystem.shared.device, rows: order, columns: order)
+        let decompositionStatus = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
         decomposer.encode(commandBuffer: commandBuffer,
                           sourceMatrix: matrix,
                           resultMatrix: decomposedResultMatrix,
@@ -317,7 +318,7 @@ class MatrixUtility {
         for i in 0..<order {
             identityMatrixData[i * order + i] = 1
         }
-        guard let identityMatrixBuffer = system.device.makeBuffer(bytes: identityMatrixData, length: identityMatrixData.count * MemoryLayout<Float>.stride) else {
+        guard let identityMatrixBuffer = MetalSystem.shared.device.makeBuffer(bytes: identityMatrixData, length: identityMatrixData.count * MemoryLayout<Float>.stride) else {
             print("Cannot create identity matrix buffer")
             return nil
         }
@@ -327,14 +328,14 @@ class MatrixUtility {
                                                           rowBytes: order * 4,
                                                           dataType: .float32))
         
-        let solution = MPSMatrix(device: system.device,
+        let solution = MPSMatrix(device: MetalSystem.shared.device,
                                  descriptor: MPSMatrixDescriptor(rows: order,
                                                                  columns: order,
                                                                  rowBytes: order * 4,
                                                                  dataType: .float32))
         solution.data.label = resultMatrixLabel
         
-        let solver = MPSMatrixSolveLU(device: system.device,
+        let solver = MPSMatrixSolveLU(device: MetalSystem.shared.device,
                                       transpose: false,
                                       order: order,
                                       numberOfRightHandSides: order)
@@ -367,20 +368,20 @@ class MatrixUtility {
                         commandBufferLabel: String? = nil) -> MPSMatrix? {
         guard matrix.rows == matrix.columns else { return nil }
         
-        guard let commandBuffer = system.commandQueue.makeCommandBuffer() else {
+        guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else {
             print("Cannot create command buffer")
             return nil
         }
         commandBuffer.label = commandBufferLabel
         
         let order = matrix.rows
-        let decomposedResultMatrix = MPSMatrix(device: system.device,
+        let decomposedResultMatrix = MPSMatrix(device: MetalSystem.shared.device,
                                                descriptor: MPSMatrixDescriptor(rows: order,
                                                                                columns: order,
                                                                                rowBytes: order * 4,
                                                                                dataType: .float32))
-        let decomposer = MPSMatrixDecompositionCholesky(device: system.device, lower: false, order: order)
-        let decompositionStatus = system.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
+        let decomposer = MPSMatrixDecompositionCholesky(device: MetalSystem.shared.device, lower: false, order: order)
+        let decompositionStatus = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<MPSMatrixDecompositionStatus>.size)!
         decomposer.encode(commandBuffer: commandBuffer,
                           sourceMatrix: matrix,
                           resultMatrix: decomposedResultMatrix,
@@ -389,7 +390,7 @@ class MatrixUtility {
         for i in 0..<order {
             identityMatrixData[i * order + i] = 1
         }
-        guard let identityMatrixBuffer = system.device.makeBuffer(bytes: identityMatrixData, 
+        guard let identityMatrixBuffer = MetalSystem.shared.device.makeBuffer(bytes: identityMatrixData, 
                                                                   length: identityMatrixData.count * MemoryLayout<Float>.stride) else {
             print("Cannot create identity matrix buffer")
             return nil
@@ -401,14 +402,14 @@ class MatrixUtility {
                                                           rowBytes: order * 4,
                                                           dataType: .float32))
         
-        let solution = MPSMatrix(device: system.device,
+        let solution = MPSMatrix(device: MetalSystem.shared.device,
                                  descriptor: MPSMatrixDescriptor(rows: order,
                                                                  columns: order,
                                                                  rowBytes: order * 4,
                                                                  dataType: .float32))
         solution.data.label = resultMatrixLabel
         
-        let solver = MPSMatrixSolveCholesky(device: system.device, 
+        let solver = MPSMatrixSolveCholesky(device: MetalSystem.shared.device, 
                                             upper: true,
                                             order: order,
                                             numberOfRightHandSides: order)

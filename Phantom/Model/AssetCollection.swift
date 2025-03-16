@@ -12,6 +12,7 @@ typealias DrawableCollection = AssetCollection<DrawableBase>
 typealias TextureCollection = AssetCollection<MTLTexture>
 typealias MaterialCollection = AssetCollection<MaterialWrapper>
 
+@MainActor
 @Observable
 class AssetCollection<T> {
     private(set) var collection: [String: T] = [:]

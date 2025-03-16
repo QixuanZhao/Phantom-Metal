@@ -74,6 +74,7 @@ extension CurveSamplePointSetPanel {
         case perCurve, forAllCurves
     }
     
+    @MainActor
     @Observable
     class ViewModel {
         let drawables: DrawableCollection

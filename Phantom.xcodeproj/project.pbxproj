@@ -83,6 +83,8 @@
 		D9C74D8E2ADD6D0F006F9E47 /* FPSController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74D8D2ADD6D0F006F9E47 /* FPSController.swift */; };
 		D9C74DAE2ADDA646006F9E47 /* ShaderData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C74DAD2ADDA646006F9E47 /* ShaderData.swift */; };
 		D9D2EDA42B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9D2EDA32B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift */; };
+		D9DDC2902D86B19400FB83A7 /* SIMD+UVSTPQ.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DDC28F2D86B19400FB83A7 /* SIMD+UVSTPQ.swift */; };
+		D9DDC2922D86BAC700FB83A7 /* FloatingPoint+Sampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DDC2912D86BAC700FB83A7 /* FloatingPoint+Sampler.swift */; };
 		D9E757B02CCE044F00B640B3 /* CurveSamplePointSetPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E757AF2CCE044F00B640B3 /* CurveSamplePointSetPanel.swift */; };
 		D9E757B32CCE245700B640B3 /* CurvesToSurfaceProjectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E757B22CCE245700B640B3 /* CurvesToSurfaceProjectorView.swift */; };
 		D9E757B72CCE50E300B640B3 /* PointsToSurfaceProjectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E757B62CCE50E300B640B3 /* PointsToSurfaceProjectorView.swift */; };
@@ -202,6 +204,9 @@
 		D9C74D8D2ADD6D0F006F9E47 /* FPSController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FPSController.swift; sourceTree = "<group>"; };
 		D9C74DAD2ADDA646006F9E47 /* ShaderData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaderData.swift; sourceTree = "<group>"; };
 		D9D2EDA32B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineInterpolatedCurveConstructor.swift; sourceTree = "<group>"; };
+		D9DDC28F2D86B19400FB83A7 /* SIMD+UVSTPQ.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SIMD+UVSTPQ.swift"; sourceTree = "<group>"; };
+		D9DDC2912D86BAC700FB83A7 /* FloatingPoint+Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FloatingPoint+Sampler.swift"; sourceTree = "<group>"; };
+		D9DDC2932D87285500FB83A7 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		D9E757AF2CCE044F00B640B3 /* CurveSamplePointSetPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveSamplePointSetPanel.swift; sourceTree = "<group>"; };
 		D9E757B22CCE245700B640B3 /* CurvesToSurfaceProjectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurvesToSurfaceProjectorView.swift; sourceTree = "<group>"; };
 		D9E757B62CCE50E300B640B3 /* PointsToSurfaceProjectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsToSurfaceProjectorView.swift; sourceTree = "<group>"; };
@@ -314,6 +319,7 @@
 			isa = PBXGroup;
 			children = (
 				D97C4B442B11D47500010A96 /* MetalSystem.swift */,
+				D9DDC28E2D86B17200FB83A7 /* Util */,
 				D9E757B82CCFBDE400B640B3 /* Resources */,
 				D90CCE222B71FA1F006CA159 /* Linear Algebra */,
 				D94FF2722AD805740019F211 /* Shaders */,
@@ -326,6 +332,7 @@
 				D94FF2612AD682C70019F211 /* Assets.xcassets */,
 				D94FF2662AD682C70019F211 /* Phantom.entitlements */,
 				D94FF2632AD682C70019F211 /* Preview Content */,
+				D9DDC2932D87285500FB83A7 /* module.modulemap */,
 			);
 			path = Phantom;
 			sourceTree = "<group>";
@@ -485,6 +492,15 @@
 				D9C74D8D2ADD6D0F006F9E47 /* FPSController.swift */,
 			);
 			path = Controller;
+			sourceTree = "<group>";
+		};
+		D9DDC28E2D86B17200FB83A7 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				D9DDC28F2D86B19400FB83A7 /* SIMD+UVSTPQ.swift */,
+				D9DDC2912D86BAC700FB83A7 /* FloatingPoint+Sampler.swift */,
+			);
+			path = Util;
 			sourceTree = "<group>";
 		};
 		D9E757B12CCE243E00B640B3 /* Projector */ = {
@@ -707,6 +723,7 @@
 				D9F2D8BA2B08C021000726F6 /* FloatPicker.swift in Sources */,
 				D99B19652B2D82D000CD2A4E /* tessellation.metal in Sources */,
 				D97852412B77CB5B00233932 /* BSplineBasisComputeGraph.swift in Sources */,
+				D9DDC2922D86BAC700FB83A7 /* FloatingPoint+Sampler.swift in Sources */,
 				D941F34B2B2C62BA0037E241 /* BSplineSurface.swift in Sources */,
 				D9A012182B0B2692009E6614 /* Axes.swift in Sources */,
 				D94FF25E2AD682C60019F211 /* ContentView.swift in Sources */,
@@ -756,6 +773,7 @@
 				D93E95DD2B8F28B1001D5AEA /* MiscellaneousPanel.swift in Sources */,
 				D97422DD2B6BBEA700C4B489 /* BSplineApproximator.swift in Sources */,
 				D93E95FB2B9474EF001D5AEA /* BSplineCurveCombiner.swift in Sources */,
+				D9DDC2902D86B19400FB83A7 /* SIMD+UVSTPQ.swift in Sources */,
 				D97B71A82B5D0C8800249AC3 /* BSplineInterpolator.swift in Sources */,
 				D93E95DF2B904609001D5AEA /* IntersectionPointPanel.swift in Sources */,
 				D941F3452B2AE7DC0037E241 /* BSplineBasisChart.swift in Sources */,
@@ -963,10 +981,10 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_OBJC_INTEROP_MODE = objc;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -1000,9 +1018,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_OBJC_INTEROP_MODE = objc;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};

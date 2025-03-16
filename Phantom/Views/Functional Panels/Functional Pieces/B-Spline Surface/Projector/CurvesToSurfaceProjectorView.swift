@@ -53,6 +53,7 @@ struct CurvesToSurfaceProjectorView: View {
 }
 
 extension CurvesToSurfaceProjectorView {
+    @MainActor
     @Observable
     class ViewModel {
         let drawables: DrawableCollection
