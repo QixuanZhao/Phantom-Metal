@@ -416,8 +416,8 @@ class BSplineSurface: DrawableBase {
             }
         }
         
-        self.controlLineStripIndexBufferI = MetalSystem.shared.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * 16)!
-        self.controlLineStripIndexBufferJ = MetalSystem.shared.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * 16)!
+        self.controlLineStripIndexBufferI = MetalSystem.shared.device.makeBuffer(bytes: iStripIndices, length: controlPointCount * MemoryLayout<UInt16>.stride)!
+        self.controlLineStripIndexBufferJ = MetalSystem.shared.device.makeBuffer(bytes: jStripIndices, length: controlPointCount * MemoryLayout<UInt16>.stride)!
         
         super.init()
         super.name = "B-Spline Surface"
