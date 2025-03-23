@@ -71,13 +71,6 @@ class MetalSystem {
     }
 }
 
-//// global system variable(s)
-//let system = MetalSystem(device: MTLCreateSystemDefaultDevice()!,
-//                         defaultMaterial: Material(albedoSpecular: [1, 1, 1, 0.9],
-//                                                   refractiveIndicesRoughnessU: [1.5, 1.5, 1.5, 0.7],
-//                                                   extinctionCoefficentsRoughnessV: [1, 1, 1, 0.7])
-//)
-
 extension MaterialWrapper {
     static let `default` = MaterialWrapper(material: MetalSystem.shared.defaultMaterial)
 }
