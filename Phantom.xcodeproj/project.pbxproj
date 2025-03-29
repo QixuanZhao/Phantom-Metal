@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -232,6 +232,10 @@
 		D9FAABB12B25A6170054DD3D /* ModelLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelLoader.swift; sourceTree = "<group>"; };
 		D9FAABB32B25A7000054DD3D /* BSplineCurveConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineCurveConstructor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D9D334A52D91A2FA006FE14A /* Basis */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Basis; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D94FF2552AD682C60019F211 /* Frameworks */ = {
@@ -576,6 +580,7 @@
 		D9FAABA82B20281D0054DD3D /* Parametric Geometry */ = {
 			isa = PBXGroup;
 			children = (
+				D9D334A52D91A2FA006FE14A /* Basis */,
 				D93E95E72B905B02001D5AEA /* Algorithms */,
 				D9EE96732B449E7D002F8D12 /* BernsteinBasisReader.swift */,
 				D9EE966F2B44930C002F8D12 /* BernsteinBasis.swift */,
@@ -622,6 +627,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D9D334A52D91A2FA006FE14A /* Basis */,
 			);
 			name = Phantom;
 			productName = Phantom;

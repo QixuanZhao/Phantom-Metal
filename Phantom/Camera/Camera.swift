@@ -8,7 +8,7 @@
 import simd
 import SwiftUI
 
-class Camera: ObservableObject {
+class Camera {
     var position: SIMD3<Float> = SIMD3<Float>(0, -2, 1)
     var right: SIMD3<Float> { eularAngleTransformation[0] }
     var front: SIMD3<Float> { eularAngleTransformation[1] }
