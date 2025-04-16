@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -236,17 +236,13 @@
 /* Begin PBXFrameworksBuildPhase section */
 		D94FF2552AD682C60019F211 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D99E7C0C2C381D8A009B17CF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -621,8 +617,6 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			name = Phantom;
 			productName = Phantom;
 			productReference = D94FF2582AD682C60019F211 /* Phantom.app */;
@@ -654,7 +648,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					D94FF2572AD682C60019F211 = {
 						CreatedOnToolsVersion = 15.0;
@@ -667,7 +661,6 @@
 				};
 			};
 			buildConfigurationList = D94FF2532AD682C60019F211 /* Build configuration list for PBXProject "Phantom" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -675,6 +668,7 @@
 				Base,
 			);
 			mainGroup = D94FF24F2AD682C60019F211;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = D94FF2592AD682C60019F211 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -688,27 +682,22 @@
 /* Begin PBXResourcesBuildPhase section */
 		D94FF2562AD682C60019F211 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				D9E757BA2CCFBE0200B640B3 /* DataFormatConverter.py in Resources */,
 				D94FF2652AD682C70019F211 /* Preview Assets.xcassets in Resources */,
 				D94FF2622AD682C70019F211 /* Assets.xcassets in Resources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D99E7C0D2C381D8A009B17CF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D94FF2542AD682C60019F211 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				D94FF26E2AD69D120019F211 /* MetalView.swift in Sources */,
 				D97C4B452B11D47500010A96 /* MetalSystem.swift in Sources */,
@@ -808,15 +797,12 @@
 				D970BA912B62E2E100BF6991 /* LoftedSurfaceConstructor.swift in Sources */,
 				D9F3CB102B0C73B2009D999E /* Particle.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D99E7C0B2C381D8A009B17CF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				D99E7C122C381D8A009B17CF /* PhantomUnitTests.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -829,7 +815,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		D94FF2672AD682C70019F211 /* Debug */ = {
+		D94FF2672AD682C70019F211 /* Debug configuration for PBXProject "Phantom" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -865,6 +851,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -894,7 +881,7 @@
 			};
 			name = Debug;
 		};
-		D94FF2682AD682C70019F211 /* Release */ = {
+		D94FF2682AD682C70019F211 /* Release configuration for PBXProject "Phantom" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -930,6 +917,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -951,11 +939,12 @@
 			};
 			name = Release;
 		};
-		D94FF26A2AD682C70019F211 /* Debug */ = {
+		D94FF26A2AD682C70019F211 /* Debug configuration for PBXNativeTarget "Phantom" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
@@ -964,7 +953,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Phantom/Preview Content\"";
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -988,11 +976,12 @@
 			};
 			name = Debug;
 		};
-		D94FF26B2AD682C70019F211 /* Release */ = {
+		D94FF26B2AD682C70019F211 /* Release configuration for PBXNativeTarget "Phantom" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Phantom/Phantom.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
@@ -1001,7 +990,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Phantom/Preview Content\"";
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1024,15 +1012,14 @@
 			};
 			name = Release;
 		};
-		D99E7C162C381D8A009B17CF /* Debug */ = {
+		D99E7C162C381D8A009B17CF /* Debug configuration for PBXNativeTarget "PhantomUnitTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = TSAR.PhantomUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1042,15 +1029,14 @@
 			};
 			name = Debug;
 		};
-		D99E7C172C381D8A009B17CF /* Release */ = {
+		D99E7C172C381D8A009B17CF /* Release configuration for PBXNativeTarget "PhantomUnitTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZRJUG8P7DW;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = TSAR.PhantomUnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1066,28 +1052,25 @@
 		D94FF2532AD682C60019F211 /* Build configuration list for PBXProject "Phantom" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D94FF2672AD682C70019F211 /* Debug */,
-				D94FF2682AD682C70019F211 /* Release */,
+				D94FF2672AD682C70019F211 /* Debug configuration for PBXProject "Phantom" */,
+				D94FF2682AD682C70019F211 /* Release configuration for PBXProject "Phantom" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		D94FF2692AD682C70019F211 /* Build configuration list for PBXNativeTarget "Phantom" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D94FF26A2AD682C70019F211 /* Debug */,
-				D94FF26B2AD682C70019F211 /* Release */,
+				D94FF26A2AD682C70019F211 /* Debug configuration for PBXNativeTarget "Phantom" */,
+				D94FF26B2AD682C70019F211 /* Release configuration for PBXNativeTarget "Phantom" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		D99E7C152C381D8A009B17CF /* Build configuration list for PBXNativeTarget "PhantomUnitTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D99E7C162C381D8A009B17CF /* Debug */,
-				D99E7C172C381D8A009B17CF /* Release */,
+				D99E7C162C381D8A009B17CF /* Debug configuration for PBXNativeTarget "PhantomUnitTests" */,
+				D99E7C172C381D8A009B17CF /* Release configuration for PBXNativeTarget "PhantomUnitTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
