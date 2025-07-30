@@ -29,7 +29,6 @@ class MetalSystem {
         )
     )
 
-    
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     let library: MTLLibrary

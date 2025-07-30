@@ -849,8 +849,8 @@ class BSplineApproximator {
                     }
                     
                     // prevent approaching span ends
-                    let uKnot = (weightedAveragePos.x + midU) / 2
-                    let vKnot = (weightedAveragePos.y + midV) / 2
+                    let uKnot = (weightedAveragePos.u + midU) / 2
+                    let vKnot = (weightedAveragePos.v + midV) / 2
                     
                     blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: maxErrorI + 1)
                     blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: maxErrorJ + 1)

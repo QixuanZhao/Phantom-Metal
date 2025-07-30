@@ -206,7 +206,6 @@
 		D9D2EDA32B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineInterpolatedCurveConstructor.swift; sourceTree = "<group>"; };
 		D9DDC28F2D86B19400FB83A7 /* SIMD+UVSTPQ.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SIMD+UVSTPQ.swift"; sourceTree = "<group>"; };
 		D9DDC2912D86BAC700FB83A7 /* FloatingPoint+Sampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FloatingPoint+Sampler.swift"; sourceTree = "<group>"; };
-		D9DDC2932D87285500FB83A7 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		D9E757AF2CCE044F00B640B3 /* CurveSamplePointSetPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveSamplePointSetPanel.swift; sourceTree = "<group>"; };
 		D9E757B22CCE245700B640B3 /* CurvesToSurfaceProjectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurvesToSurfaceProjectorView.swift; sourceTree = "<group>"; };
 		D9E757B62CCE50E300B640B3 /* PointsToSurfaceProjectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsToSurfaceProjectorView.swift; sourceTree = "<group>"; };
@@ -328,7 +327,6 @@
 				D94FF2612AD682C70019F211 /* Assets.xcassets */,
 				D94FF2662AD682C70019F211 /* Phantom.entitlements */,
 				D94FF2632AD682C70019F211 /* Preview Content */,
-				D9DDC2932D87285500FB83A7 /* module.modulemap */,
 			);
 			path = Phantom;
 			sourceTree = "<group>";
