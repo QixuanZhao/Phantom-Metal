@@ -1316,6 +1316,10 @@ class BSplineApproximator {
             
             /// check if knot insertion is necessary by evaluating delta error
             let delta = maxError - currentMaxError
+            
+            sampleDeviation = currentSampleDeviation
+            errorSet = currentErrorSet
+            maxErrorItem = currentMaxErrorItem
             maxError = currentMaxError
             surface = modifiedSurface
             
