@@ -924,15 +924,21 @@ class BSplineApproximator {
         let q = originalSurface.vBasis.degree
         
         var currentMaxError = maxError
+        var maxErrorSequence = [maxError]
         
         let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
         let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
+        var uKnotsSequence = [(iteration: 0, knots: blendUKnots)]
+        var vKnotsSequence = [(iteration: 0, knots: blendVKnots)]
         
         var currentDeviationSurface: BSplineSurface? = nil
         var iterationCount: Int = 0
+        
+        let startTime = Date.now
+        var timeSequence = [startTime]
         
         while currentMaxError > tolerance {
             iterationCount += 1
@@ -953,6 +959,8 @@ class BSplineApproximator {
                 currentMaxError = currentMaxErrorItem.1
                 
                 print("max error: \(currentMaxError) at iteration \(iterationCount)")
+                maxErrorSequence.append(currentMaxError)
+                timeSequence.append(.now)
                 
                 if currentMaxError > tolerance {
                     let currentExceptionalSamples = currentSampleError.filter { $0.1 > tolerance }
@@ -1017,6 +1025,9 @@ class BSplineApproximator {
                         
                         blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: j + 1)
                     }
+                    
+                    uKnotsSequence.append((iteration: iterationCount, knots: blendUKnots))
+                    vKnotsSequence.append((iteration: iterationCount, knots: blendVKnots))
                 } else {
                     currentDeviationSurface = ds
                 }
@@ -1041,6 +1052,18 @@ class BSplineApproximator {
                                              controlPointColor: compatibleSurfaces.first!.controlPointColor)
         
         print("Type1 error control succeeded, \(iterationCount) iterations passed")
+        print("---- type1 batch fitting ended ----")
+        print(maxErrorSequence)
+        print("U")
+        uKnotsSequence.forEach {
+            print("\($0.iteration) - \($0.knots)")
+        }
+        print("V")
+        vKnotsSequence.forEach {
+            print("\($0.iteration) - \($0.knots)")
+        }
+        print("Time")
+        print(timeSequence.map { $0.timeIntervalSince(startTime) })
         return .success(.init(originalSurface: originalSurface,
                               modifiedSurface: modifiedSurface,
                               averageError: -1,
@@ -1087,15 +1110,21 @@ class BSplineApproximator {
         let q = originalSurface.vBasis.degree
         
         var currentMaxError = maxError
+        var maxErrorSequence = [maxError]
         
         let innerIsoU = Array(isoU[isoU.startIndex + 1 ..< isoU.endIndex - 1])
         let innerIsoV = Array(isoV[isoV.startIndex + 1 ..< isoV.endIndex - 1])
         
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
+        var uKnotsSequence = [(iteration: 0, knots: blendUKnots)]
+        var vKnotsSequence = [(iteration: 0, knots: blendVKnots)]
         
         var currentDeviationSurface: BSplineSurface? = nil
         var iterationCount: Int = 0
+        
+        let startTime = Date.now
+        var timeSequence = [startTime]
         
         while currentMaxError > tolerance {
             iterationCount += 1
@@ -1116,6 +1145,8 @@ class BSplineApproximator {
                 currentMaxError = currentMaxErrorItem.1
                 
                 print("max error: \(currentMaxError) at iteration \(iterationCount)")
+                maxErrorSequence.append(currentMaxError)
+                timeSequence.append(.now)
                 
                 if currentMaxError > tolerance {
                     let u = currentMaxErrorItem.0.u
@@ -1132,6 +1163,9 @@ class BSplineApproximator {
                     
                     blendUKnots.insert(.init(value: knotU, multiplicity: 1), at: i)
                     blendVKnots.insert(.init(value: knotV, multiplicity: 1), at: j)
+                    
+                    uKnotsSequence.append((iteration: iterationCount, knots: blendUKnots))
+                    vKnotsSequence.append((iteration: iterationCount, knots: blendVKnots))
                 } else {
                     currentDeviationSurface = ds
                 }
@@ -1157,6 +1191,18 @@ class BSplineApproximator {
                                              controlPointColor: compatibleSurfaces.first!.controlPointColor)
         
         print("Type1 error control succeeded, \(iterationCount) iterations passed")
+        print("---- type1 gradual max fitting ended ----")
+        print(maxErrorSequence)
+        print("U")
+        uKnotsSequence.forEach {
+            print("\($0.iteration) - \($0.knots)")
+        }
+        print("V")
+        vKnotsSequence.forEach {
+            print("\($0.iteration) - \($0.knots)")
+        }
+        print("Time")
+        print(timeSequence.map { $0.timeIntervalSince(startTime) })
         return .success(.init(originalSurface: originalSurface,
                               modifiedSurface: modifiedSurface,
                               averageError: -1,
@@ -1212,9 +1258,15 @@ class BSplineApproximator {
         var blendUKnots = biconstrainedKnots(for: isoU, degree: p)
         var blendVKnots = biconstrainedKnots(for: isoV, degree: q)
         
+        var uKnotsSequence = [(iteration: 0, knots: blendUKnots)]
+        var vKnotsSequence = [(iteration: 0, knots: blendVKnots)]
+        
         var iterationNumber = 0
         var moment: Float? = nil
         let momentRatioOfChange: Float = 0.5
+        
+        let startTime = Date.now
+        var timeSequence = [startTime]
         
         repeat {
             iterationNumber += 1
@@ -1271,8 +1323,22 @@ class BSplineApproximator {
             let currentMaxError = currentMaxErrorItem.1
             
             print("i: \(iterationNumber) & e = \(currentMaxError)")
+            maxErrorSequence.append(currentMaxError)
+            timeSequence.append(.now)
             
             if currentMaxError < tolerance {
+                print("---- our method fitting ended ----")
+                print(maxErrorSequence)
+                print("U")
+                uKnotsSequence.forEach {
+                    print("\($0.iteration) - \($0.knots)")
+                }
+                print("V")
+                vKnotsSequence.forEach {
+                    print("\($0.iteration) - \($0.knots)")
+                }
+                print("Time")
+                print(timeSequence.map { $0.timeIntervalSince(startTime) })
                 return .success(.init(originalSurface: originalSurface,
                                       modifiedSurface: modifiedSurface,
                                       averageError: -1,
@@ -1283,6 +1349,8 @@ class BSplineApproximator {
             let delta = maxError - currentMaxError
             
             if delta < 0 {
+                // 回溯
+                timeSequence.append(startTime)
                 let newKnots = computeNewKnots(
                     currentErrorSet: currentErrorSet,
                     currentMaxErrorItem: currentMaxErrorItem,
@@ -1299,6 +1367,9 @@ class BSplineApproximator {
                 
                 blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: maxI + 1)
                 blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: maxJ + 1)
+                
+                uKnotsSequence.append((iteration: iterationNumber, knots: blendUKnots))
+                vKnotsSequence.append((iteration: iterationNumber, knots: blendVKnots))
             } else {
                 sampleDeviation = currentSampleDeviation
                 errorSet = currentErrorSet
@@ -1307,7 +1378,6 @@ class BSplineApproximator {
                 surface = modifiedSurface
                 
                 surfaceSequence.append(surface)
-                maxErrorSequence.append(maxError)
                 if maxErrorSequence[minMaxErrorIndex] < maxError {
                     minMaxErrorIndex = iterationNumber
                 }
@@ -1341,6 +1411,9 @@ class BSplineApproximator {
                     
                     blendUKnots.insert(.init(value: uKnot, multiplicity: 1), at: maxI + 1)
                     blendVKnots.insert(.init(value: vKnot, multiplicity: 1), at: maxJ + 1)
+                    
+                    uKnotsSequence.append((iteration: iterationNumber, knots: blendUKnots))
+                    vKnotsSequence.append((iteration: iterationNumber, knots: blendVKnots))
                 }
             }
         } while maxError > tolerance
