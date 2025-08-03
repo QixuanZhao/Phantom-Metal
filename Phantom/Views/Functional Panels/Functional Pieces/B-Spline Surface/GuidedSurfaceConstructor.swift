@@ -400,10 +400,20 @@ struct GuidedSurfaceConstructor: View {
                             }
                         }
                         
-                        Stepper("Per Curve Sample Count: \(perCurveSampleCount)",
-                                value: $perCurveSampleCount,
-                                in: 10...200,
-                                step: 10)
+                        HStack (spacing: .zero) {
+                            Stepper("Per Curve Sample Count: \(perCurveSampleCount)",
+                                    value: $perCurveSampleCount,
+                                    in: 10...1000,
+                                    step: 10)
+                            Group {
+                                Stepper("", value: $perCurveSampleCount,
+                                        in: 10...1000,
+                                        step: 50)
+                                Stepper("", value: $perCurveSampleCount,
+                                        in: 10...1000,
+                                        step: 100)
+                            }.labelsHidden()
+                        }
                     }
                 } label: {
                     HStack {
