@@ -132,14 +132,17 @@ namespace deferred {
      * the fragment shader for deferred rendering pass
      */
     [[host_name("memorylessFS") fragment]]
-    ColorData fragmentShader(QuadData in [[stage_in]],
-                             float4 position_normalFormat           [[color(1), raster_order_group(0)]],
-                             float4 normal                          [[color(2), raster_order_group(0)]],
-                             float4 albedoSpecular                  [[color(3), raster_order_group(0)]],
-                             float4 refractiveIndicesRoughnessU     [[color(4), raster_order_group(0)]],
-                             float4 extinctionCoefficentsRoughnessV [[color(5), raster_order_group(0)]],
-                             constant Uniform& uniform [[buffer(1)]],
-                             constant Light&  light    [[buffer(3)]]) {
+    ColorData fragmentShader(
+        QuadData in [[stage_in]],
+        float4 position_normalFormat           [[color(1), raster_order_group(0)]],
+        float4 normal                          [[color(2), raster_order_group(0)]],
+        float4 albedoSpecular                  [[color(3), raster_order_group(0)]],
+        float4 refractiveIndicesRoughnessU     [[color(4), raster_order_group(0)]],
+        float4 extinctionCoefficentsRoughnessV [[color(5), raster_order_group(0)]],
+        constant Uniform& uniform     [[buffer(1)]],
+        constant Light*   lights      [[buffer(3)]],
+        constant int&     lightCount  [[buffer(5)]]
+    ) {
         ColorData out;
         
         float4 surfaceColor   = albedoSpecular;
@@ -176,31 +179,37 @@ namespace deferred {
         if (dot(viewDirection, globalNormal) < 0) globalNormal = -globalNormal;
         
         if (position_normalFormat.w != 0) {
-            Light forthLight = light;
-            float3 illumination = analytical::parallelLight(globalNormal.xyz, tangent, bitangent,
-                                                            globalPosition.xyz,
-                                                            uniform.cameraPositionAndFOV.xyz,
-                                                            (1 - albedoSpecular.w),
-                                                            albedoSpecular.rgb,
-                                                            refractiveIndicesRoughnessU.xyz,
-                                                            extinctionCoefficentsRoughnessV.xyz,
-                                                            float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
-                                                            forthLight);
-            Light counterLight = light;
-            counterLight.direction = -light.direction;
-            illumination += analytical::parallelLight(globalNormal.xyz, tangent, bitangent,
-                                                      globalPosition.xyz,
-                                                      uniform.cameraPositionAndFOV.xyz,
-                                                      (1 - albedoSpecular.w),
-                                                      albedoSpecular.rgb,
-                                                      refractiveIndicesRoughnessU.xyz,
-                                                      extinctionCoefficentsRoughnessV.xyz,
-                                                      float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
-                                                      counterLight);
-            illumination += light.ambient;
+            float3 illumination = float3(0);
+            for (int i = 0; i < lightCount; i++) {
+                Light forthLight = lights[i];
+                illumination += analytical::parallelLight(
+                    globalNormal.xyz, tangent, bitangent,
+                    globalPosition.xyz,
+                    uniform.cameraPositionAndFOV.xyz,
+                    (1 - albedoSpecular.w),
+                    albedoSpecular.rgb,
+                    refractiveIndicesRoughnessU.xyz,
+                    extinctionCoefficentsRoughnessV.xyz,
+                    float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
+                    forthLight
+                );
+                
+                Light counterLight = forthLight;
+                counterLight.direction = -forthLight.direction;
+                illumination += analytical::parallelLight(
+                    globalNormal.xyz, tangent, bitangent,
+                    globalPosition.xyz,
+                    uniform.cameraPositionAndFOV.xyz,
+                    (1 - albedoSpecular.w),
+                    albedoSpecular.rgb,
+                    refractiveIndicesRoughnessU.xyz,
+                    extinctionCoefficentsRoughnessV.xyz,
+                    float2(refractiveIndicesRoughnessU.w, extinctionCoefficentsRoughnessV.w),
+                    counterLight
+                );
+                illumination += forthLight.ambient;
+            }
             surfaceColor.xyz *= illumination;
-            
-            
         }
         
         out.color = surfaceColor;

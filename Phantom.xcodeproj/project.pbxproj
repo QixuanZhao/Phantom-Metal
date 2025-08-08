@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC2CDABD2E442A4800D350D8 /* DirectionPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2CDABC2E442A4800D350D8 /* DirectionPicker.swift */; };
+		CC2CDABF2E442E6900D350D8 /* AnglePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2CDABE2E442E6900D350D8 /* AnglePicker.swift */; };
 		D90997952B2F30DF002AB778 /* BSplineBasisKnotEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90997942B2F30DF002AB778 /* BSplineBasisKnotEditor.swift */; };
 		D90997972B2F50C9002AB778 /* BSplineSurfaceConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90997962B2F50C9002AB778 /* BSplineSurfaceConstructor.swift */; };
 		D90997992B303F3A002AB778 /* BSplineSurfaceProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = D90997982B303F3A002AB778 /* BSplineSurfaceProperties.swift */; };
@@ -32,7 +34,6 @@
 		D941F3452B2AE7DC0037E241 /* BSplineBasisChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F3442B2AE7DC0037E241 /* BSplineBasisChart.swift */; };
 		D941F3472B2B52830037E241 /* BSplineCurveControlPointList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */; };
 		D941F3492B2C34C00037E241 /* BSplineCurveControlPointItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */; };
-		D94BDDAA2C844A1200BB3B79 /* CurveSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */; };
 		D94BDDAC2C8470B500BB3B79 /* LSFSurfaceConstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94BDDAB2C8470B500BB3B79 /* LSFSurfaceConstructor.swift */; };
 		D94FF25C2AD682C60019F211 /* PhantomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25B2AD682C60019F211 /* PhantomApp.swift */; };
 		D94FF25E2AD682C60019F211 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94FF25D2AD682C60019F211 /* ContentView.swift */; };
@@ -105,6 +106,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CC2CDABC2E442A4800D350D8 /* DirectionPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionPicker.swift; sourceTree = "<group>"; };
+		CC2CDABE2E442E6900D350D8 /* AnglePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnglePicker.swift; sourceTree = "<group>"; };
 		D90997942B2F30DF002AB778 /* BSplineBasisKnotEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineBasisKnotEditor.swift; sourceTree = "<group>"; };
 		D90997962B2F50C9002AB778 /* BSplineSurfaceConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineSurfaceConstructor.swift; sourceTree = "<group>"; };
 		D90997982B303F3A002AB778 /* BSplineSurfaceProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineSurfaceProperties.swift; sourceTree = "<group>"; };
@@ -130,7 +133,6 @@
 		D941F3442B2AE7DC0037E241 /* BSplineBasisChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineBasisChart.swift; sourceTree = "<group>"; };
 		D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineCurveControlPointList.swift; sourceTree = "<group>"; };
 		D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BSplineCurveControlPointItem.swift; sourceTree = "<group>"; };
-		D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveSampler.swift; sourceTree = "<group>"; };
 		D94BDDAB2C8470B500BB3B79 /* LSFSurfaceConstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSFSurfaceConstructor.swift; sourceTree = "<group>"; };
 		D94FF2582AD682C60019F211 /* Phantom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Phantom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D94FF25B2AD682C60019F211 /* PhantomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhantomApp.swift; sourceTree = "<group>"; };
@@ -486,7 +488,6 @@
 				D941F3422B2AE6440037E241 /* BSplineCurveProperties.swift */,
 				D941F3462B2B52830037E241 /* BSplineCurveControlPointList.swift */,
 				D941F3482B2C34C00037E241 /* BSplineCurveControlPointItem.swift */,
-				D94BDDA92C844A1100BB3B79 /* CurveSampler.swift */,
 			);
 			path = "B-Spline Curve";
 			sourceTree = "<group>";
@@ -526,6 +527,8 @@
 			children = (
 				D97C4B502B17685900010A96 /* Text Editors */,
 				D97C4B4F2B17684C00010A96 /* Number Pickers */,
+				CC2CDABC2E442A4800D350D8 /* DirectionPicker.swift */,
+				CC2CDABE2E442E6900D350D8 /* AnglePicker.swift */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -672,6 +675,7 @@
 				D909979D2B3044C5002AB778 /* BSplineSurfaceControlPointItem.swift in Sources */,
 				D9C74D8B2ADD5936006F9E47 /* CameraController.swift in Sources */,
 				D97338ED2CC3CFBD0017949D /* CurveNetworkExtractionView.swift in Sources */,
+				CC2CDABF2E442E6900D350D8 /* AnglePicker.swift in Sources */,
 				D9EE96812B44BC7F002F8D12 /* BézierCurveControlPointItem.swift in Sources */,
 				D99B19682B2DE7AD00CD2A4E /* Tessellator.swift in Sources */,
 				D9E757B72CCE50E300B640B3 /* PointsToSurfaceProjectorView.swift in Sources */,
@@ -681,10 +685,10 @@
 				D9AFC6982B1BA6A200D963E9 /* brdf.metal in Sources */,
 				D9A012162B09FE84009E6614 /* VectorPicker.swift in Sources */,
 				D909979B2B304229002AB778 /* BSplineSurfaceControlPointMatrix.swift in Sources */,
+				CC2CDABD2E442A4800D350D8 /* DirectionPicker.swift in Sources */,
 				D9EE96722B44961C002F8D12 /* bernstein.metal in Sources */,
 				D9C74D892ADD504A006F9E47 /* Camera.swift in Sources */,
 				D970BA942B65442900BF6991 /* LowGordonSurfaceConstructor.swift in Sources */,
-				D94BDDAA2C844A1200BB3B79 /* CurveSampler.swift in Sources */,
 				D91FF43A2BE04E5B00704225 /* LineSegmentsProperties.swift in Sources */,
 				D9D2EDA42B607B72008D9660 /* BSplineInterpolatedCurveConstructor.swift in Sources */,
 				D9A25CEA2B46348400BC36CB /* AxisAlignedBoundingBox.swift in Sources */,

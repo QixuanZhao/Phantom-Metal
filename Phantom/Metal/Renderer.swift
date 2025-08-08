@@ -44,6 +44,7 @@ class Renderer: NSObject, MTKViewDelegate {
     
     private var uniformBuffer: MTLBuffer?
     private var lightBuffer: MTLBuffer?
+    private var lightCountBuffer: MTLBuffer?
     
     let postprocessVertexFunction = MetalSystem.shared.library.makeFunction(name: "postprocess::vertexShader")
     let postprocessFragmentFunction = MetalSystem.shared.library.makeFunction(name: "postprocess::fragmentShader")
@@ -54,13 +55,22 @@ class Renderer: NSObject, MTKViewDelegate {
     
     weak var scene: SceneGraph?
     
-    var light: Light = Light(intensity: 1, roughness: 0.1, ambient: 0, direction: [1, -1, 3])
+    var lights: [Light] = [
+        Light(intensity: 1, roughness: 0.1, ambient: 0, direction: [1, -1, 3]),
+        Light(intensity: 1, roughness: 0.1, ambient: 0, direction: [-1, -1, -3])
+    ] {
+        didSet {
+            lightBuffer = MetalSystem.shared.device.makeBuffer(bytes: lights, length: MemoryLayout<Light>.size * lights.count, options: .storageModeShared)
+        }
+    }
     
-    var uniform = Uniform(view: .init(diagonal: .one),
-                          projection: .init(diagonal: .one),
-                          cameraPositionAndFOV: [0, 0, 0, Float.pi / 4],
-                          planesAndframeSize: [ 1, 100, 1, 1 ],
-                          pointSizeAndCurvilinearPerspective: SIMD4<Float>(20, 0, 0, 0))
+    var uniform = Uniform(
+        view: .init(diagonal: .one),
+        projection: .init(diagonal: .one),
+        cameraPositionAndFOV: [0, 0, 0, Float.pi / 4],
+        planesAndframeSize: [ 1, 100, 1, 1 ],
+        pointSizeAndCurvilinearPerspective: SIMD4<Float>(20, 0, 0, 0)
+    )
     
 //    private var semaphore = DispatchSemaphore(value: 3)
     
@@ -98,7 +108,7 @@ class Renderer: NSObject, MTKViewDelegate {
         self.depthStencilState = MetalSystem.shared.device.makeDepthStencilState(descriptor: depthStencilDescriptor)
         
         uniformBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Uniform>.size, options: .storageModeShared)
-        lightBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Light>.size, options: .storageModeShared)
+        lightCountBuffer = MetalSystem.shared.device.makeBuffer(length: MemoryLayout<Int32>.size, options: .storageModeShared)
         
         depthTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.depthTextureDescriptor)!
         positionTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.geometryTextureDescriptor)!
@@ -109,6 +119,8 @@ class Renderer: NSObject, MTKViewDelegate {
         hdrTexture = MetalSystem.shared.device.makeTexture(descriptor: MetalSystem.shared.hdrTextureDescriptor)!
         
         super.init()
+        
+        lightBuffer = MetalSystem.shared.device.makeBuffer(bytes: lights, length: MemoryLayout<Light>.size * lights.count, options: .storageModeShared)
         
         depthTexture.label = "Depth Texture"
         positionTexture.label = "Position Texture"
@@ -218,7 +230,7 @@ class Renderer: NSObject, MTKViewDelegate {
                                              toByteOffset: MemoryLayout<Uniform>.offset(of: \.pointSizeAndCurvilinearPerspective)!,
                                              as: SIMD4<Float>.self)
         
-        lightBuffer?.contents().storeBytes(of: light, as: Light.self)
+        lightCountBuffer?.contents().storeBytes(of: Int32(lights.count), as: Int32.self)
         
         guard let commandBuffer = MetalSystem.shared.commandQueue.makeCommandBuffer() else { return }
         commandBuffer.label = "Command Buffer"
@@ -234,6 +246,7 @@ class Renderer: NSObject, MTKViewDelegate {
         renderPassEncoder.setRenderPipelineState(deferredPipelineState!)
         renderPassEncoder.setFragmentBuffer(lightBuffer, offset: 0, index: BufferPosition.light.rawValue)
         renderPassEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: BufferPosition.uniform.rawValue)
+        renderPassEncoder.setFragmentBuffer(lightCountBuffer, offset: 0, index: BufferPosition.lightCount.rawValue)
         Quad.draw(renderPassEncoder)
         renderPassEncoder.endEncoding()
         

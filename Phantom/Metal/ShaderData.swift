@@ -101,7 +101,6 @@ struct Uniform {
     var cameraPositionAndFOV: SIMD4<Float>
     var planesAndframeSize: SIMD4<Float>
     var pointSizeAndCurvilinearPerspective: SIMD4<Float> // for alignment's sake
-//    var curvilinearPerspective: Bool
 }
 
 struct Light {
@@ -118,7 +117,7 @@ struct Material {
 };
 
 enum BufferPosition: Int {
-    case vertex = 0, uniform, model, light, material
+    case vertex = 0, uniform, model, light, material, lightCount
 }
 
 enum ColorAttachment: Int {
